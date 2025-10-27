@@ -8,7 +8,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 function App() {
   return(
 
-    
+
     <Router>
 
       <Routes> {/* for now this is our initial page since we have not made login page yet*/}

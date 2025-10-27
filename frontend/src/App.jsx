@@ -1,6 +1,6 @@
 import "./bootstrap/css/styles.css";
 import "./App.css";
-import Navbar from "./mainPage/navBar.jsx";
+import MainPage from "./mainPage/mainPage.jsx";
 
 
 
@@ -8,7 +8,7 @@ import Navbar from "./mainPage/navBar.jsx";
 function App() {
   return(
     <div className="App">
-      <Navbar />
+      <MainPage/>
     </div>
   )
 }

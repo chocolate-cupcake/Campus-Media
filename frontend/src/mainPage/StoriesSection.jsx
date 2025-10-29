@@ -8,7 +8,7 @@ function StorieSection() {
   const [activeIndex, setActiveIndex] = useState(null);
 
   const stories = [
-    { username: "Marko_Epoka", image: uniDummyStory },
+    { sername: "Marko_Epoka", image: uniDummyStory },
     { username: "Jordy_FSHN", image: uniDummyStory1 },
     { username: "Ana_UFO", image: uniDummyStory2 },
   ];

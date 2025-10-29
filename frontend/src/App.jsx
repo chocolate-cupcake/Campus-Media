@@ -1,6 +1,7 @@
 import "../src/App.css"
 import "./bootstrap/css/styles.css";
 import MainPage from "./mainPage/mainPage.jsx";
+import ChatPage from "./chatPage/chatPage.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 
@@ -17,6 +18,9 @@ function App() {
       {/* Route to main-page */}
       <Routes>
         <Route path="/main-page" element={<MainPage />} />
+      </Routes>
+      <Routes>
+        <Route path="/chat" element={<ChatPage />} />
       </Routes>
     </Router>
   )

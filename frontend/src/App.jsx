@@ -1,7 +1,8 @@
 import "../src/App.css"
 import "./bootstrap/css/styles.css";
 import MainPage from "./mainPage/mainPage.jsx";
-import Dashboard from "./Dashboard/dashboard.jsx";    
+import Dashboard from "./Dashboard/dashboard.jsx";
+import ChatPage from "./chatPage/chatPage.jsx";    
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -17,7 +18,10 @@ function App() {
         <Route path="/main-page" element={<MainPage />} />
 
         {/* Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />     
+        <Route path="/dashboard" element={<Dashboard />} />   
+
+        {/*Chat Page*/}
+        <Route path="/chat" element={<ChatPage />} />  
       </Routes>
     </Router>
   );

@@ -1,25 +1,24 @@
 import "./bootstrap/css/styles.css";
 import "./App.css";
 import MainPage from "./mainPage/mainPage.jsx";
+import Dashboard from "./Dashboard/dashboard.jsx";    
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-
-
 function App() {
-  return(
-
-    
+  return (
     <Router>
-
-      <Routes> {/* for now this is our initial page since we have not made login page yet*/}
-        <Route path="/" element={<MainPage />} />
-      </Routes>
-      {/* Route to main-page */}
       <Routes>
+        {/* Initial page */}
+        <Route path="/" element={<MainPage />} />
+
+        {/* Main page */}
         <Route path="/main-page" element={<MainPage />} />
+
+        {/* Dashboard */}
+        <Route path="/dashboard" element={<Dashboard />} />     
       </Routes>
     </Router>
-  )
+  );
 }
 
 export default App;

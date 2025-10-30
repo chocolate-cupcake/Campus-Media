@@ -22,16 +22,11 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
-<<<<<<< HEAD
     "bootstrap-icons": "^1.13.1",
     "chart.js": "^4.5.1",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.10",
     "react-chartjs-2": "^5.3.1",
-=======
-    "react": "^18.3.1",
-    "react-bootstrap": "^2.10.10",
->>>>>>> c6fbfdbcaaf54e9fe7103b6a5e515107b1de2a6c
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.2"
   }

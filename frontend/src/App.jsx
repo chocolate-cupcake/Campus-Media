@@ -1,11 +1,13 @@
+import "../src/App.css"
 import "./bootstrap/css/styles.css";
-import "./App.css";
 import MainPage from "./mainPage/mainPage.jsx";
 import Dashboard from "./Dashboard/dashboard.jsx";    
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
-  return (
+  return(
+
+    
     <Router>
       <Routes>
         {/* Initial page */}

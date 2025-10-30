@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import Buttons from "./Buttons.jsx";
 import ProfilePic from "../assets/profilePic.jpg";
 import chatLogo from "../assets/chatLogo.png";
+import SearchBar from "./searchBar.jsx";
 
 function NavBar() {
   const navigate = useNavigate();
@@ -55,6 +56,9 @@ function NavBar() {
 
         {/* Nav links + chat */}
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
+          <div>
+            <SearchBar/>
+          </div>
           <div className="ms-auto d-flex align-items-center gap-2">
 
             {/* Navigation buttons */}

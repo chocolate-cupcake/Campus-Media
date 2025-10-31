@@ -10,7 +10,7 @@ import noahImg from "../assets/noah.jpg";
 import chloeImg from "../assets/chloe.jpg";
 import lucasImg from "../assets/lucas.jpg";
 import NavBar from "./NavBar";
-import useNavigate from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Friends() {
   const friends = [

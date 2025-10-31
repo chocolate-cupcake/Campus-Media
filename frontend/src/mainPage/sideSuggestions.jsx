@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ListGroup, Image, Button, ButtonGroup, Breadcrumb, Toast } from "react-bootstrap";
+import {
+  ListGroup,
+  Image,
+  Button,
+  ButtonGroup,
+  Breadcrumb,
+  Toast,
+} from "react-bootstrap";
 import brianImg from "../assets/brianImg.jpg";
 import stewieImg from "../assets/stewieImg.jpg";
 import peterImg from "../assets/peterImg.jpg";
@@ -56,6 +63,7 @@ function SideSuggestions() {
       </ListGroup>
 
       <Breadcrumb>
+        <Breadcrumb.Item href="/friends">Check your Friends</Breadcrumb.Item>
         <Breadcrumb.Item href="/dashboard">Do your rating 🌟</Breadcrumb.Item>
       </Breadcrumb>
 

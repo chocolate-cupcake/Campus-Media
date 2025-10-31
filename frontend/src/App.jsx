@@ -1,5 +1,6 @@
 import "../src/App.css"
 import "./bootstrap/css/styles.css";
+import Friends from "./mainPage/friends.jsx";
 import MainPage from "./mainPage/mainPage.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -17,6 +18,9 @@ function App() {
       {/* Route to main-page */}
       <Routes>
         <Route path="/main-page" element={<MainPage />} />
+      </Routes>
+      <Routes>
+        <Route path="/friends" element = {<Friends/>}/>
       </Routes>
     </Router>
   )

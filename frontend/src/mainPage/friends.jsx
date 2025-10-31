@@ -12,59 +12,62 @@ import lucasImg from "../assets/lucas.jpg";
 import NavBar from "./NavBar";
 import friendsIcon from "../assets/friendsIcon.png";
 
+// Export the friends data so it can be used in other components
+export const friendsData = [
+  {
+    username: "Emily Carter",
+    email: "emily.carter@university.edu",
+    image: emilyImg,
+  },
+  {
+    username: "Daniel Harris",
+    email: "daniel.harris@university.edu",
+    image: danielImg,
+  },
+  {
+    username: "Sophia Nguyen",
+    email: "sophia.nguyen@university.edu",
+    image: sophiaImg,
+  },
+  {
+    username: "Liam Patel",
+    email: "liam.patel@university.edu",
+    image: liamImg,
+  },
+  {
+    username: "Ava Robinson",
+    email: "ava.robinson@university.edu",
+    image: avaImg,
+  },
+  {
+    username: "Ethan Kim",
+    email: "ethan.kim@university.edu",
+    image: ethanImg,
+  },
+  {
+    username: "Olivia Martinez",
+    email: "olivia.martinez@university.edu",
+    image: oliviaImg,
+  },
+  {
+    username: "Noah Thompson",
+    email: "noah.thompson@university.edu",
+    image: noahImg,
+  },
+  {
+    username: "Chloe Anderson",
+    email: "chloe.anderson@university.edu",
+    image: chloeImg,
+  },
+  {
+    username: "Lucas Wright",
+    email: "lucas.wright@university.edu",
+    image: lucasImg,
+  },
+];
+
 function Friends() {
-  const friends = [
-    {
-      username: "Emily Carter",
-      email: "emily.carter@university.edu",
-      image: emilyImg,
-    },
-    {
-      username: "Daniel Harris",
-      email: "daniel.harris@university.edu",
-      image: danielImg,
-    },
-    {
-      username: "Sophia Nguyen",
-      email: "sophia.nguyen@university.edu",
-      image: sophiaImg,
-    },
-    {
-      username: "Liam Patel",
-      email: "liam.patel@university.edu",
-      image: liamImg,
-    },
-    {
-      username: "Ava Robinson",
-      email: "ava.robinson@university.edu",
-      image: avaImg,
-    },
-    {
-      username: "Ethan Kim",
-      email: "ethan.kim@university.edu",
-      image: ethanImg,
-    },
-    {
-      username: "Olivia Martinez",
-      email: "olivia.martinez@university.edu",
-      image: oliviaImg,
-    },
-    {
-      username: "Noah Thompson",
-      email: "noah.thompson@university.edu",
-      image: noahImg,
-    },
-    {
-      username: "Chloe Anderson",
-      email: "chloe.anderson@university.edu",
-      image: chloeImg,
-    },
-    {
-      username: "Lucas Wright",
-      email: "lucas.wright@university.edu",
-      image: lucasImg,
-    },
-  ];
+  const friends = friendsData;
 
   return (
     <Container className="py-5">

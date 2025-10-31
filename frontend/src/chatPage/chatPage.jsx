@@ -2,17 +2,17 @@ import React, { useState } from "react";
 import Navbar from "../mainPage/NavBar.jsx";
 import ChatList from "./chatList.jsx";
 import ChatWindow from "./chatWindow.jsx";
-import brianImg from "../assets/brianImg.jpg";
-import peterImg from "../assets/peterImg.jpg";
-import stewieImg from "../assets/stewieImg.jpg";
+import { friendsData } from "../mainPage/friends.jsx";
 import chatBackground from "../assets/chatBackground.jpeg";
 
 function ChatPage() {
-  const users = [
-    { id: 1, name: "Brian Griffin", avatar: brianImg, lastMessage: "Hey, how's it going?" },
-    { id: 2, name: "Peter Griffin", avatar: peterImg, lastMessage: "Let's grab lunch!" },
-    { id: 3, name: "Stewie Griffin", avatar: stewieImg, lastMessage: "Blast! This is incredible." }
-  ];
+  // Transform friends data to chat users format
+  const users = friendsData.map((friend, index) => ({
+    id: index + 1,
+    name: friend.username,
+    avatar: friend.image,
+    lastMessage: "" // Can be customized per friend if needed
+  }));
 
   const [selectedUser, setSelectedUser] = useState(users[0]);
 

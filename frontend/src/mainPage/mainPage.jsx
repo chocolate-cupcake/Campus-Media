@@ -14,7 +14,6 @@ function MainPage() {
       <div className="d-flex flex-grow-1" style={{minHeight: 0}}>
         {/* Left Sidebar */}
         <SideSuggestions/>
-
         {/* Main feed/content */}
         <main className="flex-grow-1 overflow-auto">
           <MainPageContainer />

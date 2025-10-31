@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import NavBar from "../mainPage/mainPage.jsx";
+import NavBar from "../mainPage/navBar.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import UniversityTable from './UniversityTable';
 import UniversityChartByDep from './UniversityChartByDep.jsx';

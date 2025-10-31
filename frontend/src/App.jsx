@@ -26,7 +26,7 @@ function App() {
         <Route path="/dashboard" element = {<Dashboard/>}/>
       </Routes>
       <Routes>
-        <Route path="/chat-page" element = {<ChatPage/>}/>
+        <Route path="/chat" element = {<ChatPage/>}/>
       </Routes>
     </Router>
   );

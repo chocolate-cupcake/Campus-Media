@@ -9,6 +9,8 @@ import oliviaImg from "../assets/olivia.jpg";
 import noahImg from "../assets/noah.jpg";
 import chloeImg from "../assets/chloe.jpg";
 import lucasImg from "../assets/lucas.jpg";
+import NavBar from "./NavBar";
+import friendsIcon from "../assets/friendsIcon.png";
 
 function Friends() {
   const friends = [
@@ -66,7 +68,18 @@ function Friends() {
 
   return (
     <Container className="py-5">
-      <h2 className="text-center mb-4 fw-bold">Friends List</h2>
+      <NavBar />
+      <Row>
+        <div className="d-flex align-items-center justify-content-center mb-4">
+          <img
+            src={friendsIcon}
+            alt="friends"
+            className="me-2"
+            style={{ width: "24px", height: "24px", objectFit: "cover" }}
+          />
+          <h2 className="mb-0 fw-bold">Community</h2>
+        </div>
+      </Row>
       <Row className="g-4">
         {friends.map((friend) => (
           <Col key={friend.username} xs={12} sm={6} md={4} lg={3}>

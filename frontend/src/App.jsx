@@ -1,4 +1,4 @@
-import "../src/App.css"
+import "../src/App.css";
 import "./bootstrap/css/styles.css";
 import Friends from "./mainPage/friends.jsx";
 import MainPage from "./mainPage/mainPage.jsx";
@@ -9,23 +9,15 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 function App() {
   return(
 
-    
+
     <Router>
-      <Routes>
-        {/* Initial page */}
+
+      <Routes> {/* for now this is our initial page since we have not made login page yet*/}
         <Route path="/" element={<MainPage />} />
-
-        {/* Main page */}
-        <Route path="/main-page" element={<MainPage />} />
-
-        {/* Dashboard */}
-        <Route path="/dashboard" element={<Dashboard />} />   
-
-        {/*Chat Page*/}
-        <Route path="/chat" element={<ChatPage />} />  
       </Routes>
+      {/* Route to main-page */}
       <Routes>
-        <Route path="/friends" element = {<Friends/>}/>
+        <Route path="/main-page" element={<MainPage />} />
       </Routes>
       <Routes>
         <Route path="/friends" element = {<Friends/>}/>

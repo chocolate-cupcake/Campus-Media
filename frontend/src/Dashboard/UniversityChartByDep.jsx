@@ -21,7 +21,7 @@ function UniversityChartByDep({ departmentName, universityData }) {
     datasets: [
       {
         label: `Average Ratings in ${departmentName}`,
-        data: universityData.map((uni) => uni.rate),
+        data: universityData.map((uni) => uni.rating),
         backgroundColor: "rgba(75, 192, 192, 0.6)"
       }
     ]

@@ -12,24 +12,64 @@ import lucasImg from "../assets/lucas.jpg";
 
 function Friends() {
   const friends = [
-    { username: "Emily Carter", email: "emily.carter@university.edu", image: emilyImg },
-    { username: "Daniel Harris", email: "daniel.harris@university.edu", image: danielImg },
-    { username: "Sophia Nguyen", email: "sophia.nguyen@university.edu", image: sophiaImg },
-    { username: "Liam Patel", email: "liam.patel@university.edu", image: liamImg },
-    { username: "Ava Robinson", email: "ava.robinson@university.edu", image: avaImg },
-    { username: "Ethan Kim", email: "ethan.kim@university.edu", image: ethanImg },
-    { username: "Olivia Martinez", email: "olivia.martinez@university.edu", image: oliviaImg },
-    { username: "Noah Thompson", email: "noah.thompson@university.edu", image: noahImg },
-    { username: "Chloe Anderson", email: "chloe.anderson@university.edu", image: chloeImg },
-    { username: "Lucas Wright", email: "lucas.wright@university.edu", image: lucasImg },
+    {
+      username: "Emily Carter",
+      email: "emily.carter@university.edu",
+      image: emilyImg,
+    },
+    {
+      username: "Daniel Harris",
+      email: "daniel.harris@university.edu",
+      image: danielImg,
+    },
+    {
+      username: "Sophia Nguyen",
+      email: "sophia.nguyen@university.edu",
+      image: sophiaImg,
+    },
+    {
+      username: "Liam Patel",
+      email: "liam.patel@university.edu",
+      image: liamImg,
+    },
+    {
+      username: "Ava Robinson",
+      email: "ava.robinson@university.edu",
+      image: avaImg,
+    },
+    {
+      username: "Ethan Kim",
+      email: "ethan.kim@university.edu",
+      image: ethanImg,
+    },
+    {
+      username: "Olivia Martinez",
+      email: "olivia.martinez@university.edu",
+      image: oliviaImg,
+    },
+    {
+      username: "Noah Thompson",
+      email: "noah.thompson@university.edu",
+      image: noahImg,
+    },
+    {
+      username: "Chloe Anderson",
+      email: "chloe.anderson@university.edu",
+      image: chloeImg,
+    },
+    {
+      username: "Lucas Wright",
+      email: "lucas.wright@university.edu",
+      image: lucasImg,
+    },
   ];
 
   return (
     <Container className="py-5">
       <h2 className="text-center mb-4 fw-bold">Friends List</h2>
       <Row className="g-4">
-        {friends.map((friend, index) => (
-          <Col key={index} xs={12} sm={6} md={4} lg={3}>
+        {friends.map((friend) => (
+          <Col key={friend.username} xs={12} sm={6} md={4} lg={3}>
             <Card className="h-100 shadow-sm border-0 rounded-4">
               <Card.Img
                 variant="top"
@@ -42,8 +82,13 @@ function Friends() {
                 }}
               />
               <Card.Body className="text-center">
-                <Card.Title className="fw-semibold">{friend.username}</Card.Title>
-                <Card.Text className="text-muted" style={{ fontSize: "0.9rem" }}>
+                <Card.Title className="fw-semibold">
+                  {friend.username}
+                </Card.Title>
+                <Card.Text
+                  className="text-muted"
+                  style={{ fontSize: "0.9rem" }}
+                >
                   {friend.email}
                 </Card.Text>
               </Card.Body>

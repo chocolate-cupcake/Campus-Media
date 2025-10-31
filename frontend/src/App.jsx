@@ -22,6 +22,12 @@ function App() {
       <Routes>
         <Route path="/friends" element = {<Friends/>}/>
       </Routes>
+      <Routes>
+        <Route path="/dashboard" element = {<Dashboard/>}/>
+      </Routes>
+      <Routes>
+        <Route path="/chat-page" element = {<ChatPage/>}/>
+      </Routes>
     </Router>
   );
 }

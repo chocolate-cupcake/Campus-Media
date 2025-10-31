@@ -1,7 +1,9 @@
-import { ListGroup, Image, Button, ButtonGroup } from "react-bootstrap";
+import { useState } from "react";
+import { ListGroup, Image, Button, ButtonGroup, Breadcrumb, Toast } from "react-bootstrap";
 import brianImg from "../assets/brianImg.jpg";
 import stewieImg from "../assets/stewieImg.jpg";
 import peterImg from "../assets/peterImg.jpg";
+
 function SideSuggestions() {
   const suggestions = [
     { username: "Brian Griffin", image: brianImg },
@@ -9,19 +11,25 @@ function SideSuggestions() {
     { username: "Peter Griffin", image: peterImg },
   ];
 
- function handleAdd(){
-    console.log("You added a friend")
- }
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
-  function handleRemove(){
-    console.log("You removed a suggestion")
- }
+  function handleAdd(username) {
+    console.log(`You added ${username}`);
+    setToastMessage(`✅ You added ${username} as a friend`);
+    setShowToast(true);
+  }
 
+  function handleRemove(username) {
+    console.log(`You removed ${username}`);
+    setToastMessage(`❌ You removed ${username} from suggestions`);
+    setShowToast(true);
+  }
 
   return (
     <aside
       className="bg-light p-3"
-      style={{ width: "350px", minHeight: "100vh" }}
+      style={{ width: "350px", minHeight: "100vh", position: "relative" }}
     >
       <h5>Suggestions</h5>
       <ListGroup>
@@ -35,19 +43,45 @@ function SideSuggestions() {
               <Image src={s.image} roundedCircle width={30} height={30} />
               <span>{s.username}</span>
             </div>
-            <div className="d-flex gap-1">
-                <ButtonGroup size="sm" className="mb-2">
-              <Button size="sm" variant="primary" onClick={handleAdd}>
+            <ButtonGroup size="sm">
+              <Button variant="primary" onClick={() => handleAdd(s.username)}>
                 Add
               </Button>
-              <Button size="sm" variant="danger" onClick={handleRemove}>
+              <Button variant="danger" onClick={() => handleRemove(s.username)}>
                 -
               </Button>
-              </ButtonGroup>
-            </div>
+            </ButtonGroup>
           </ListGroup.Item>
         ))}
       </ListGroup>
+
+      <Breadcrumb>
+        <Breadcrumb.Item href="/dashboard">Do your rating 🌟</Breadcrumb.Item>
+      </Breadcrumb>
+
+      {/* Toast positioned at bottom-right */}
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="position-relative"
+        style={{ zIndex: 9999 }}
+      >
+        <div className="toast-container position-absolute bottom-0 end-0 p-3">
+          <Toast
+            bg="light"
+            show={showToast}
+            onClose={() => setShowToast(false)}
+            delay={2500}
+            autohide
+          >
+            <Toast.Header>
+              <strong className="me-auto">Notification</strong>
+              <small>Just now</small>
+            </Toast.Header>
+            <Toast.Body>{toastMessage}</Toast.Body>
+          </Toast>
+        </div>
+      </div>
     </aside>
   );
 }

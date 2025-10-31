@@ -1,5 +1,6 @@
 import "../src/App.css"
 import "./bootstrap/css/styles.css";
+import Friends from "./mainPage/friends.jsx";
 import MainPage from "./mainPage/mainPage.jsx";
 import Dashboard from "./Dashboard/dashboard.jsx";
 import ChatPage from "./chatPage/chatPage.jsx";    
@@ -22,6 +23,9 @@ function App() {
 
         {/*Chat Page*/}
         <Route path="/chat" element={<ChatPage />} />  
+      </Routes>
+      <Routes>
+        <Route path="/friends" element = {<Friends/>}/>
       </Routes>
     </Router>
   );

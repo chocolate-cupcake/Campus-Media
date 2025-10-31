@@ -14,14 +14,25 @@ import {
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-function UniversityChartByDep({ departmentName, universityData }) {
-  // Prepare data for the bar chart
+function UniversityChartByDep({ areaOfStudy, universityData = [] }) {
+  const areaLabel = areaOfStudy || "All";
+
+  // Labels are university names
+  const labels = universityData.map((uni) => uni.name);
+
+  // Use the computed avgProgramRating if available, otherwise fall back to uni.rating
+  const dataPoints = universityData.map((uni) =>
+    typeof uni.avgProgramRating === "number" && uni.avgProgramRating > 0
+      ? Number(uni.avgProgramRating.toFixed(2))
+      : uni.rating || 0
+  );
+
   const data = {
-    labels: universityData.map((uni) => uni.name),
+    labels,
     datasets: [
       {
-        label: `Average Ratings in ${departmentName}`,
-        data: universityData.map((uni) => uni.rating),
+        label: `Average Program Ratings (${areaLabel})`,
+        data: dataPoints,
         backgroundColor: "rgba(75, 192, 192, 0.6)"
       }
     ]
@@ -29,9 +40,13 @@ function UniversityChartByDep({ departmentName, universityData }) {
 
   return (
     <Card>
-      <Card.Header>{`University Ratings by Department: ${departmentName}`}</Card.Header>
+      <Card.Header>{`University Ratings by Area of Study: ${areaLabel}`}</Card.Header>
       <Card.Body>
-        <Bar data={data} />
+        {universityData.length > 0 ? (
+          <Bar data={data} />
+        ) : (
+          <p>No universities match the selected study areas.</p>
+        )}
       </Card.Body>
     </Card>
   );

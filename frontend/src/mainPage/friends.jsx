@@ -10,7 +10,7 @@ import noahImg from "../assets/noah.jpg";
 import chloeImg from "../assets/chloe.jpg";
 import lucasImg from "../assets/lucas.jpg";
 import NavBar from "./NavBar";
-import friendsIcon from "../assets/friendsIcon.png";
+import { useNavigate } from "react-router-dom";
 
 // Export the friends data so it can be used in other components
 export const friendsData = [
@@ -69,15 +69,16 @@ export const friendsData = [
 function Friends() {
   const friends = friendsData;
 
+  const navigate = useNavigate();
   return (
     <Container className="py-5">
       <NavBar />
       <Row>
         <div className="d-flex align-items-center justify-content-center mb-4">
           <img
-            src={friendsIcon}
+            src={avaImg}
             alt="friends"
-            className="me-2"
+            className="me-2 rounded-circle"
             style={{ width: "24px", height: "24px", objectFit: "cover" }}
           />
           <h2 className="mb-0 fw-bold">Community</h2>
@@ -86,7 +87,15 @@ function Friends() {
       <Row className="g-4">
         {friends.map((friend) => (
           <Col key={friend.username} xs={12} sm={6} md={4} lg={3}>
-            <Card className="h-100 shadow-sm border-0 rounded-4">
+            <Card
+              className="h-100 shadow-sm border-0 rounded-4"
+              style={{ cursor: "pointer" }}
+              onClick={() =>
+                navigate(
+                  `/profile?username=${encodeURIComponent(friend.username)}`
+                )
+              }
+            >
               <Card.Img
                 variant="top"
                 src={friend.image}

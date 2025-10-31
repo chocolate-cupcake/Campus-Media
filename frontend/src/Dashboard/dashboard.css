@@ -1,0 +1,51 @@
+:root{
+  --card-radius:12px;
+}
+
+.dashboard-container{
+  max-width:1200px;
+}
+
+.dashboard-title{
+  font-weight:700;
+  letter-spacing:0.2px;
+}
+
+.type-select .form-select{ 
+  min-width:220px;
+}
+
+.type-badge{
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 0.45rem 0.7rem;
+  font-size:0.85rem;
+}
+
+.program-list{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.5rem;
+}
+
+.program-card{
+  display:inline-block;
+  width: calc(50% - 0.5rem);
+  border-radius:8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.program-name{
+  font-weight:600;
+}
+
+.program-rating{
+  font-size:0.9rem;
+  padding:0.45rem 0.6rem;
+}
+
+@media (max-width: 767px){
+  .program-card{
+    width:100%;
+  }
+  .type-select .form-select{ min-width: 140px }
+}

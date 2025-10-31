@@ -1,14 +1,21 @@
+import React from "react";
+
 function Message({ text, isOwn }) {
   return (
-    <div style={{ textAlign: isOwn ? "right" : "left", margin: "5px 0" }}>
-      <span style={{
-        display: "inline-block",
-        padding: "8px 12px",
-        borderRadius: "15px",
-        backgroundColor: isOwn ? "#DCF8C6" : "#F0F0F0"
-      }}>
-        {text}
-      </span>
+    <div className={`d-flex ${isOwn ? 'justify-content-end' : 'justify-content-start'}`} style={{ marginBottom: "10px" }}>
+      <div 
+        className="px-3 py-2"
+        style={{
+          maxWidth: "70%",
+          borderRadius: "8px",
+          backgroundColor: isOwn ? "#DCF8C6" : "#FFFFFF",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.1)"
+        }}
+      >
+        <span className={isOwn ? 'text-end' : 'text-start'} style={{ wordBreak: "break-word" }}>
+          {text}
+        </span>
+      </div>
     </div>
   );
 }

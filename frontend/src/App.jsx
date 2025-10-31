@@ -27,6 +27,9 @@ function App() {
       <Routes>
         <Route path="/friends" element = {<Friends/>}/>
       </Routes>
+      <Routes>
+        <Route path="/friends" element = {<Friends/>}/>
+      </Routes>
     </Router>
   );
 }

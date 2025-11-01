@@ -9,7 +9,7 @@ import universities from './data.js';
  * - top (number) : how many top pedagogues to show (default 5)
  * - professors (array) : optional array of professor objects to use instead of collecting from data.js
  */
-function PedagogueTable({ top = 5, professors }) {
+function PedagogueTable({ top = 5, professors, onReview, reviewedIds = new Set() }) {
   const allProfessors = useMemo(() => {
     if (Array.isArray(professors)) return professors;
 
@@ -46,6 +46,7 @@ function PedagogueTable({ top = 5, professors }) {
           <th>Courses</th>
           <th>Rating</th>
           <th>Years</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -58,6 +59,18 @@ function PedagogueTable({ top = 5, professors }) {
             <td>{(p.courses || []).slice(0, 3).join(', ')}</td>
             <td>{p.rating ?? '—'}</td>
             <td>{p.yearsOfExperience ?? '—'}</td>
+            <td>
+              {reviewedIds && reviewedIds.has && reviewedIds.has(p.id) ? (
+                <span className="text-success">Reviewed</span>
+              ) : (
+                <button
+                  className="btn btn-sm btn-outline-primary"
+                  onClick={() => (onReview ? onReview(p) : console.log('Review', p))}
+                >
+                  Review
+                </button>
+              )}
+            </td>
           </tr>
         ))}
       </tbody>

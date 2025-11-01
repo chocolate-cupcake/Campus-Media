@@ -1,11 +1,20 @@
-import React, { useState, useMemo } from 'react';
-import { Container, Row, Col, Card, Form, Badge, InputGroup, Button } from 'react-bootstrap';
+import React, { useState, useMemo } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Badge,
+  InputGroup,
+  Button,
+} from "react-bootstrap";
 import NavBar from "../mainPage/navBar.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
-import './dashboard.css';
-import UniversityTable from './UniversityTable';
-import UniversityChartByDep from './UniversityChartByDep.jsx';
-import universities from './data.js';
+import "./dashboard.css";
+import UniversityTable from "./UniversityTable";
+import UniversityChartByDep from "./UniversityChartByDep.jsx";
+import universities from "./data.js";
 
 function Dashboard() {
 
@@ -39,9 +48,9 @@ function Dashboard() {
       (uni.type || []).forEach((t) => typesSet.add(t));
     });
     // ensure 'All' is present and put it first
-    const arr = Array.from(typesSet).filter((t) => t && t !== 'All');
+    const arr = Array.from(typesSet).filter((t) => t && t !== "All");
     arr.sort();
-    return ['All', ...arr];
+    return ["All", ...arr];
   }, []);
 
   // Build a filtered view of universities where programs match the selectedType.
@@ -68,7 +77,8 @@ function Dashboard() {
       const allPrograms = uni.departments.flatMap((d) => d.programs || []);
       const avgProgramRating =
         allPrograms.length > 0
-          ? allPrograms.reduce((s, p) => s + (p.rating || 0), 0) / allPrograms.length
+          ? allPrograms.reduce((s, p) => s + (p.rating || 0), 0) /
+            allPrograms.length
           : 0;
       return { ...uni, avgProgramRating };
     });
@@ -80,16 +90,30 @@ function Dashboard() {
         <Row className="align-items-center mb-3">
           <Col>
             <h1 className="dashboard-title">University Insights</h1>
-            <p className="text-muted mb-0">Explore programs, compare universities and view ratings by study area.</p>
+            <p className="text-muted mb-0">
+              Explore programs, compare universities and view ratings by study
+              area.
+            </p>
           </Col>
           <Col xs="auto">
             <InputGroup className="type-select">
-              <Form.Select aria-label="Filter by program type" value={selectedType} onChange={handleTypeChange}>
+              <Form.Select
+                aria-label="Filter by program type"
+                value={selectedType}
+                onChange={handleTypeChange}
+              >
                 {availableTypes.map((t) => (
-                  <option key={t} value={t}>{t}</option>
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
                 ))}
               </Form.Select>
-              <Button variant="outline-secondary" onClick={() => setSelectedType('All')}>Reset</Button>
+              <Button
+                variant="outline-secondary"
+                onClick={() => setSelectedType("All")}
+              >
+                Reset
+              </Button>
             </InputGroup>
           </Col>
         </Row>
@@ -98,8 +122,12 @@ function Dashboard() {
           <Col lg={4}>
             <Card className="shadow-sm">
               <Card.Body>
-                <Card.Title className="mb-2">Top Ranked Universities</Card.Title>
-                <UniversityTable universities={calculateHierarchicalRankings(universities)} />
+                <Card.Title className="mb-2">
+                  Top Ranked Universities
+                </Card.Title>
+                <UniversityTable
+                  universities={calculateHierarchicalRankings(universities)}
+                />
               </Card.Body>
             </Card>
           </Col>
@@ -113,18 +141,21 @@ function Dashboard() {
                     <Badge
                       key={t}
                       pill
-                      bg={t === selectedType ? 'primary' : 'light'}
-                      text={t === selectedType ? undefined : 'dark'}
+                      bg={t === selectedType ? "primary" : "light"}
+                      text={t === selectedType ? undefined : "dark"}
                       className="me-2 type-badge"
                       onClick={() => setSelectedType(t)}
-                      style={{ cursor: 'pointer' }}
+                      style={{ cursor: "pointer" }}
                     >
                       {t}
                     </Badge>
                   ))}
                 </div>
 
-                <UniversityChartByDep areaOfStudy={selectedType} universityData={selectedValues} />
+                <UniversityChartByDep
+                  areaOfStudy={selectedType}
+                  universityData={selectedValues}
+                />
               </Card.Body>
             </Card>
 
@@ -136,24 +167,35 @@ function Dashboard() {
                     <div className="mb-3" key={uni.id}>
                       <h6 className="mb-1">{uni.name}</h6>
                       <div className="program-list">
-                        {uni.departments.flatMap((d) => d.programs).map((p) => (
-                          <Card key={p.id} className="program-card me-2 mb-2">
-                            <Card.Body className="p-2">
-                              <div className="d-flex justify-content-between align-items-start">
-                                <div>
-                                  <div className="program-name">{p.name}</div>
-                                  <div className="text-muted small">{p.degree} • {p.language} • {p.credits} cr</div>
+                        {uni.departments
+                          .flatMap((d) => d.programs)
+                          .map((p) => (
+                            <Card key={p.id} className="program-card me-2 mb-2">
+                              <Card.Body className="p-2">
+                                <div className="d-flex justify-content-between align-items-start">
+                                  <div>
+                                    <div className="program-name">{p.name}</div>
+                                    <div className="text-muted small">
+                                      {p.degree} • {p.language} • {p.credits} cr
+                                    </div>
+                                  </div>
+                                  <Badge
+                                    bg="success"
+                                    className="program-rating"
+                                  >
+                                    {p.rating}
+                                  </Badge>
                                 </div>
-                                <Badge bg="success" className="program-rating">{p.rating}</Badge>
-                              </div>
-                            </Card.Body>
-                          </Card>
-                        ))}
+                              </Card.Body>
+                            </Card>
+                          ))}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-muted">No programs found for the selected type.</p>
+                  <p className="text-muted">
+                    No programs found for the selected type.
+                  </p>
                 )}
               </Card.Body>
             </Card>

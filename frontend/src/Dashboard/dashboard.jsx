@@ -37,19 +37,24 @@ function Dashboard() {
 
   // derive available types dynamically from the programs data
   const availableTypes = useMemo(() => {
+    // collect only program-level types (ignore department/university type fields)
     const typesSet = new Set();
     universities.forEach((uni) => {
       (uni.departments || []).forEach((dept) => {
         (dept.programs || []).forEach((prog) => {
-          (prog.type || []).forEach((t) => typesSet.add(t));
+          const progTypes = Array.isArray(prog.type)
+            ? prog.type
+            : prog.type
+            ? [prog.type]
+            : [];
+          progTypes.forEach((t) => {
+            if (t && t !== "All") typesSet.add(t);
+          });
         });
-        (dept.type || []).forEach((t) => typesSet.add(t));
       });
-      (uni.type || []).forEach((t) => typesSet.add(t));
     });
-    // ensure 'All' is present and put it first
-    const arr = Array.from(typesSet).filter((t) => t && t !== "All");
-    arr.sort();
+
+    const arr = Array.from(typesSet).sort();
     return ["All", ...arr];
   }, []);
 

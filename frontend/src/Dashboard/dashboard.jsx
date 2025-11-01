@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   Container,
   Row,
@@ -14,6 +14,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./dashboard.css";
 import UniversityTable from "./UniversityTable";
 import UniversityChartByDep from "./UniversityChartByDep.jsx";
+import PedagogueTable from "./PedagogueTable.jsx";
 import universities from "./data.js";
 
 function Dashboard() {
@@ -135,6 +136,14 @@ function Dashboard() {
                 />
               </Card.Body>
             </Card>
+            <Card className="shadow-sm mt-3">
+              <Card.Body>
+                <Card.Title className="mb-2">Top Ranked Pedagogues</Card.Title>
+                <PedagogueTable
+                  top={5}
+                />
+              </Card.Body>
+            </Card> 
           </Col>
 
           <Col lg={8}>

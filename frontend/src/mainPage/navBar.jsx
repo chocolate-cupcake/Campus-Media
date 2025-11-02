@@ -4,8 +4,11 @@ import ProfilePic from "../assets/profilePic.jpg";
 import chatLogo from "../assets/chatLogo.png";
 import SearchBar from "./searchBar.jsx";
 
-function NavBar({ onOpenSuggestions }) {
+function NavBar({ onOpenSuggestions, currentUser }) {
   const navigate = useNavigate();
+  // defensive defaults when currentUser is not provided
+  const displayImage = currentUser?.profileImage || ProfilePic;
+  const displayName = currentUser?.name || "User";
   const chatCount = 2; // Example chat count
   const navItems = [
     { label: "Home", path: "/main-page" },
@@ -18,16 +21,23 @@ function NavBar({ onOpenSuggestions }) {
       <div className="container px-4 px-lg-5">
         {/* Profile section */}
         <div className="me-3 d-flex flex-column align-items-center">
-          <Buttons variant="light" onClick={() => navigate("/profile")}>
+          <Buttons
+            variant="light"
+            onClick={() =>
+              navigate(
+                currentUser ? `/profile/${currentUser.id}` : "/main-page"
+              )
+            }
+          >
             <img
-              src={ProfilePic}
+              src={displayImage}
               alt="Profile"
               className="rounded-circle"
               style={{ width: "40px", height: "40px" }}
             />
           </Buttons>
           <span className="mt-1 text-center" style={{ fontSize: "0.8rem" }}>
-            John Doe
+            {displayName}
           </span>
         </div>
 

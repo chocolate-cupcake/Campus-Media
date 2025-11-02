@@ -1,7 +1,8 @@
 import { useState } from "react";
-import Navbar from "./NavBar.jsx";
+import NavBar from "./navBar.jsx";
 import MainPageContainer from "./MainPageContainer.jsx";
 import SideSuggestions from "./sideSuggestions.jsx";
+import { students } from "./studentData.js";
 
 function MainPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -14,11 +15,13 @@ function MainPage() {
     setShowSuggestions(false);
   }
 
+  const currentUser = students.find((s) => s.id === 1);
+
   return (
     <div className="d-flex flex-column vh-100">
       {/* Top navbar */}
       <header>
-        <Navbar onOpenSuggestions={openSuggestions} />
+        <NavBar onOpenSuggestions={openSuggestions} currentUser={currentUser} />
       </header>
 
       {/* Main content with sidebar */}

@@ -16,9 +16,9 @@ import UniversityTable from "./UniversityTable";
 import UniversityChartByDep from "./UniversityChartByDep.jsx";
 import PedagogueTable from "./PedagogueTable.jsx";
 import universities from "./data.js";
+import { students } from "../mainPage/studentData.js";
 
 function Dashboard() {
-
   function calculateHierarchicalRankings(universities) {
     // Sort universities by their rating in descending order
     let sorted = [...universities].sort((a, b) => b.rating - a.rating);
@@ -26,9 +26,6 @@ function Dashboard() {
     // Assign rankings based on the sorted order
     return sorted.map((uni, index) => ({ ...uni, rank: index + 1 }));
   }
-
-  
-
 
   const [selectedType, setSelectedType] = useState("All");
   const [searchProf, setSearchProf] = useState("");
@@ -49,16 +46,19 @@ function Dashboard() {
   }, []);
 
   // student matching state
-  const [studentUniversity, setStudentUniversity] = useState('Any');
-  const [studentCourses, setStudentCourses] = useState('');
+  const [studentUniversity, setStudentUniversity] = useState("Any");
+  const [studentCourses, setStudentCourses] = useState("");
   const [matchedProfessors, setMatchedProfessors] = useState([]);
 
-  const universityOptions = useMemo(() => ['Any', ...universities.map(u => u.name)], []);
+  const universityOptions = useMemo(
+    () => ["Any", ...universities.map((u) => u.name)],
+    []
+  );
 
   const findMatchesForStudent = () => {
     const terms = studentCourses
-      .split(',')
-      .map(s => s.trim().toLowerCase())
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
       .filter(Boolean);
 
     if (terms.length === 0) {
@@ -66,11 +66,12 @@ function Dashboard() {
       return;
     }
 
-    const matches = allProfessors.filter(p => {
-      if (studentUniversity !== 'Any' && p.university !== studentUniversity) return false;
-      const profCourses = (p.courses || []).map(c => c.toLowerCase());
+    const matches = allProfessors.filter((p) => {
+      if (studentUniversity !== "Any" && p.university !== studentUniversity)
+        return false;
+      const profCourses = (p.courses || []).map((c) => c.toLowerCase());
       // match if any student term appears inside any prof course
-      return terms.some(t => profCourses.some(pc => pc.includes(t)));
+      return terms.some((t) => profCourses.some((pc) => pc.includes(t)));
     });
 
     setMatchedProfessors(matches);
@@ -81,17 +82,21 @@ function Dashboard() {
     if (!term) return allProfessors;
     return allProfessors.filter((p) => {
       const full = `${p.name} ${p.surname}`.toLowerCase();
-      return full.includes(term) || (p.courses || []).some(c => c.toLowerCase().includes(term)) || (p.researchAreas || []).some(r => r.toLowerCase().includes(term));
+      return (
+        full.includes(term) ||
+        (p.courses || []).some((c) => c.toLowerCase().includes(term)) ||
+        (p.researchAreas || []).some((r) => r.toLowerCase().includes(term))
+      );
     });
   }, [searchProf, allProfessors]);
 
   const handleReviewUniversity = (uni) => {
-    setReviewedUniversities(prev => new Set(prev).add(uni.id));
+    setReviewedUniversities((prev) => new Set(prev).add(uni.id));
     // for now simply mark reviewed; a real implementation would open a review modal or navigate to a review form
   };
 
   const handleReviewProfessor = (prof) => {
-    setReviewedProfessors(prev => new Set(prev).add(prof.id));
+    setReviewedProfessors((prev) => new Set(prev).add(prof.id));
   };
 
   const handleTypeChange = (event) => {
@@ -150,10 +155,12 @@ function Dashboard() {
           : 0;
       return { ...uni, avgProgramRating };
     });
-
+  const currentUser =
+    students.find((student) => student.id === 1) || students[0];
+  console.log("Dashboard: currentUser", currentUser);
   return (
     <>
-      <NavBar />
+      <NavBar currentUser={currentUser} />
       <Container className="dashboard-container mt-4">
         <Row className="align-items-center mb-3">
           <Col>
@@ -201,11 +208,9 @@ function Dashboard() {
             <Card className="shadow-sm mt-3">
               <Card.Body>
                 <Card.Title className="mb-2">Top Ranked Pedagogues</Card.Title>
-                <PedagogueTable
-                  top={5}
-                />
+                <PedagogueTable top={5} />
               </Card.Body>
-            </Card> 
+            </Card>
           </Col>
 
           <Col lg={8}>
@@ -282,19 +287,32 @@ function Dashboard() {
             <Card className="shadow-sm h-100">
               <Card.Body>
                 <Card.Title>University Ratings & Reviews</Card.Title>
-                <p className="text-muted small">See which universities have ratings and add a review.</p>
+                <p className="text-muted small">
+                  See which universities have ratings and add a review.
+                </p>
                 <div className="list-group">
                   {universities.map((uni) => (
-                    <div key={uni.id} className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div
+                      key={uni.id}
+                      className="d-flex justify-content-between align-items-center py-2 border-bottom"
+                    >
                       <div>
                         <strong>{uni.name}</strong>
-                        <div className="text-muted small">Rating: {uni.rating}</div>
+                        <div className="text-muted small">
+                          Rating: {uni.rating}
+                        </div>
                       </div>
                       <div>
                         {reviewedUniversities.has(uni.id) ? (
                           <Badge bg="success">Reviewed</Badge>
                         ) : (
-                          <Button size="sm" variant="outline-primary" onClick={() => handleReviewUniversity(uni)}>Review</Button>
+                          <Button
+                            size="sm"
+                            variant="outline-primary"
+                            onClick={() => handleReviewUniversity(uni)}
+                          >
+                            Review
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -311,9 +329,14 @@ function Dashboard() {
                 <Form className="mb-3">
                   <Row className="g-2">
                     <Col sm={5}>
-                      <Form.Select value={studentUniversity} onChange={(e) => setStudentUniversity(e.target.value)}>
-                        {universityOptions.map(u => (
-                          <option key={u} value={u}>{u}</option>
+                      <Form.Select
+                        value={studentUniversity}
+                        onChange={(e) => setStudentUniversity(e.target.value)}
+                      >
+                        {universityOptions.map((u) => (
+                          <option key={u} value={u}>
+                            {u}
+                          </option>
                         ))}
                       </Form.Select>
                     </Col>
@@ -325,20 +348,30 @@ function Dashboard() {
                       />
                     </Col>
                     <Col sm={2} className="d-grid">
-                      <Button variant="primary" onClick={findMatchesForStudent}>Find</Button>
+                      <Button variant="primary" onClick={findMatchesForStudent}>
+                        Find
+                      </Button>
                     </Col>
                   </Row>
                 </Form>
 
                 {studentCourses.trim() && (
                   <div className="mb-2">
-                    <small className="text-muted">Showing matches for student at <strong>{studentUniversity}</strong> (courses: {studentCourses})</small>
+                    <small className="text-muted">
+                      Showing matches for student at{" "}
+                      <strong>{studentUniversity}</strong> (courses:{" "}
+                      {studentCourses})
+                    </small>
                   </div>
                 )}
 
                 <PedagogueTable
                   top={50}
-                  professors={studentCourses.trim() ? matchedProfessors : filteredProfessors}
+                  professors={
+                    studentCourses.trim()
+                      ? matchedProfessors
+                      : filteredProfessors
+                  }
                   onReview={handleReviewProfessor}
                   reviewedIds={reviewedProfessors}
                 />

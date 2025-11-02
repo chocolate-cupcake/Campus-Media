@@ -1,22 +1,26 @@
 import FeedContainer from "./feedContainer.jsx";
-import dummyPost from "../assets/dummyPost.jpg";
-import dummyPost1 from "../assets/dummyPost1.jpg";
-import dummyPost2 from "../assets/dummyPost2.jpg";
 import StorieSection from "./StoriesSection";
-
-const dummyPosts = [
-  { id: 1, image: dummyPost, caption: "Hello world!" },
-  { id: 2, image: dummyPost1, caption: "Nice day" },
-  { id: 3, image: dummyPost2, caption: "Check this out!" },
-];
+import { students } from "./studentData.js";
 
 function MainPageContainer() {
+  // Simulated logged-in student (Alice)
+  const currentUser = students.find((student) => student.id === 1);
+
+  // Get only this user's friends
+  const friends = students.filter((student) =>
+    currentUser.friends.includes(student.id)
+  );
+
+  // Collect all posts from friends
+  const friendPosts = friends.flatMap((friend) => friend.posts);
+
   return (
     <div className="container my-4 d-flex flex-column align-items-center">
-      {/* View Stories Section */}
+      {/* Stories Section */}
       <div className="">
-        <StorieSection/>
+        <StorieSection />
       </div>
+
       {/* Add Post Section */}
       <div className="card w-100 mb-4" style={{ maxWidth: "600px" }}>
         <div className="card-body">
@@ -31,11 +35,9 @@ function MainPageContainer() {
         </div>
       </div>
 
-      
-
-      {/* Feed Section */}
+      {/* Feed Section — show friends' posts only */}
       <div className="d-flex flex-column align-items-center w-100">
-        <FeedContainer posts={dummyPosts} />
+        <FeedContainer posts={friendPosts} />
       </div>
     </div>
   );

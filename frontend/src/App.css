@@ -36,3 +36,84 @@
   transition: all 0.3s ease;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
+
+
+/* Main layout: split left and right */
+.login-page {
+  display: flex;
+  height: 100vh; /* full viewport height */
+  overflow: hidden;
+}
+
+/* Left side: Carousel */
+.login-carousel-container {
+  width: 50%; /* half of the screen */
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-carousel-container .carousel-item img {
+  height: 100vh;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Style carousel captions for readability */
+.carousel-caption {
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 10px;
+  padding: 10px 15px;
+}
+
+.carousel-caption h3,
+.carousel-caption p {
+  color: #fff;
+  margin: 0;
+}
+
+/* Right side (login area or placeholder) */
+.login-form-side {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f9f9fb;
+  color: #333;
+  padding: 40px;
+}
+
+.login-form-side h2 {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.login-form-side p {
+  color: #555;
+  margin-bottom: 40px;
+}
+
+.login-form {
+  max-width: 350px;
+  margin: auto;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-form h2 {
+  font-weight: 600;
+  color: #333;
+}
+
+.login-form a {
+  color: #0d6efd;
+  text-decoration: none;
+}
+
+.login-form a:hover {
+  text-decoration: underline;
+}

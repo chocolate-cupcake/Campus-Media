@@ -20,11 +20,12 @@ import story3 from "../assets/stories/story3.jpg";
 import story4 from "../assets/stories/story4.jpg";
 import story5 from "../assets/stories/story5.jpg";
 
-
 export const students = [
   {
     id: 1,
     name: "Alice Johnson",
+    email: "alice.johnson@example.com",
+    password: "alice123", // 🔐 for testing only, never store plaintext passwords in production
     profileImage: aliceImg,
     posts: [
       {
@@ -44,13 +45,15 @@ export const students = [
       { id: 201, image: story1, viewed: false },
       { id: 202, image: story2, viewed: true }
     ],
-    friends: [2, 3, 5], // Brian, Carla, Emily
-    suggestions: [4, 6] // Daniel, Fiona
+    friends: [2, 3, 5],
+    suggestions: [4, 6]
   },
 
   {
     id: 2,
     name: "Brian Smith",
+    email: "brian.smith@example.com",
+    password: "brian123",
     profileImage: brianImg,
     posts: [
       {
@@ -60,9 +63,7 @@ export const students = [
         date: "2025-10-29"
       }
     ],
-    stories: [
-      { id: 203, image: story3, viewed: true }
-    ],
+    stories: [{ id: 203, image: story3, viewed: true }],
     friends: [1, 4],
     suggestions: [3, 5]
   },
@@ -70,7 +71,9 @@ export const students = [
   {
     id: 3,
     name: "Carla Nguyen",
-    profileImage: carlaImg ,
+    email: "carla.nguyen@example.com",
+    password: "carla123",
+    profileImage: carlaImg,
     posts: [
       {
         id: 104,
@@ -93,6 +96,8 @@ export const students = [
   {
     id: 4,
     name: "Daniel Lee",
+    email: "daniel.lee@example.com",
+    password: "daniel123",
     profileImage: danielImg,
     posts: [
       {
@@ -102,9 +107,7 @@ export const students = [
         date: "2025-10-27"
       }
     ],
-    stories: [
-      { id: 204, image: story4, viewed: false }
-    ],
+    stories: [{ id: 204, image: story4, viewed: false }],
     friends: [2, 5],
     suggestions: [1, 3, 6]
   },
@@ -112,6 +115,8 @@ export const students = [
   {
     id: 5,
     name: "Emily Carter",
+    email: "emily.carter@example.com",
+    password: "emily123",
     profileImage: emilyImg,
     posts: [
       {
@@ -127,9 +132,7 @@ export const students = [
         date: "2025-11-02"
       }
     ],
-    stories: [
-      { id: 205, image: story5, viewed: false }
-    ],
+    stories: [{ id: 205, image: story5, viewed: false }],
     friends: [1, 3, 4],
     suggestions: [6]
   },
@@ -137,6 +140,8 @@ export const students = [
   {
     id: 6,
     name: "Fiona Brown",
+    email: "fiona.brown@example.com",
+    password: "fiona123",
     profileImage: fionaImg,
     posts: [],
     stories: [],

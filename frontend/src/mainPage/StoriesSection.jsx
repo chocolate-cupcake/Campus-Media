@@ -1,22 +1,34 @@
-// StorieSection.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { students } from "./studentData.js";
 
 function StorieSection({ currentUserId = 1 }) {
   const [viewedStories, setViewedStories] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Find current user
-  const currentUser = students.find((s) => s.id === currentUserId);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) {
+      setCurrentUser(user);
+    } else {
+      // optionally redirect if not logged in
+      // navigate("/login");
+    }
+  }, []);
 
-  // Get friends of the current user
-  const friends = students.filter((s) => currentUser.friends.includes(s.id));
+  // show loading until currentUser is loaded
+  if (!currentUser) return <p>Loading...</p>;
+
+  // Get friends of the current user safely
+  const friends = students.filter((s) =>
+    currentUser.friends?.includes(s.id)
+  );
 
   // Combine current user's stories + friends' stories
   const stories = [
-    ...currentUser.stories.map((s) => ({ ...s, username: currentUser.name })),
+    ...(currentUser.stories || []).map((s) => ({ ...s, username: currentUser.name })),
     ...friends.flatMap((friend) =>
-      friend.stories.map((s) => ({ ...s, username: friend.name }))
+      (friend.stories || []).map((s) => ({ ...s, username: friend.name }))
     ),
   ];
 

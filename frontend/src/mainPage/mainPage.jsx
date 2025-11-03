@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NavBar from "./navBar.jsx";
-import MainPageContainer from "./MainPageContainer.jsx";
+import MainPageContainer from "./mainPageContainer.jsx";
 import SideSuggestions from "./sideSuggestions.jsx";
-import { students } from "./studentData.js";
 
 function MainPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   function openSuggestions() {
     setShowSuggestions(true);
@@ -15,25 +15,29 @@ function MainPage() {
     setShowSuggestions(false);
   }
 
-  const currentUser = students.find((s) => s.id === 1);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) setCurrentUser(user);
+    // optionally redirect if not logged in
+    // else navigate("/login");
+  }, []);
+
+  if (!currentUser) return <p>Loading...</p>;
 
   return (
     <div className="d-flex flex-column vh-100">
-      {/* Top navbar */}
       <header>
         <NavBar onOpenSuggestions={openSuggestions} currentUser={currentUser} />
       </header>
 
-      {/* Main content with sidebar */}
       <div className="d-flex flex-grow-1" style={{ minHeight: 0 }}>
-        {/* Left Sidebar */}
         <SideSuggestions
           showOffcanvas={showSuggestions}
           closeOffcanvas={closeSuggestions}
+          currentUser={currentUser}
         />
-        {/* Main feed/content */}
         <main className="flex-grow-1 overflow-auto">
-          <MainPageContainer />
+          <MainPageContainer currentUser={currentUser} />
         </main>
       </div>
     </div>

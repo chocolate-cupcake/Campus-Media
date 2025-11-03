@@ -2,15 +2,28 @@ import { Container, Row, Col, Card } from "react-bootstrap";
 import NavBar from "./navBar.jsx";
 import { useNavigate } from "react-router-dom";
 import { students } from "./studentData.js";
+import { useEffect, useState } from "react";
 
 function Friends() {
   const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const currentUser = students.find((student) => student.id === 1);
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) {
+      setCurrentUser(user);
+    } else {
+      // optionally redirect if not logged in
+      // navigate("/login");
+    }
+  }, []);
+
+  // Show loading while currentUser is not ready
+  if (!currentUser) return <p>Loading...</p>;
 
   // Full friend objects
   const friends = students.filter((student) =>
-    currentUser.friends.includes(student.id)
+    currentUser.friends?.includes(student.id)
   );
 
   return (

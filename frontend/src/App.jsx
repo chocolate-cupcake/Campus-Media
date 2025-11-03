@@ -5,6 +5,7 @@ import MainPage from "./mainPage/mainPage.jsx";
 import Dashboard from "./Dashboard/dashboard.jsx";
 import ChatPage from "./chatPage/chatPage.jsx";    
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import LogIn from "./login_signUp/loginPage.jsx";
 
 function App() {
   return(
@@ -13,7 +14,7 @@ function App() {
     <Router>
 
       <Routes> {/* for now this is our initial page since we have not made login page yet*/}
-        <Route path="/" element={<MainPage />} />
+        <Route path="/" element={<LogIn />} />
       </Routes>
       {/* Route to main-page */}
       <Routes>

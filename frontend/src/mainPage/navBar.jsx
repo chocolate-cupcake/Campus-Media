@@ -12,7 +12,6 @@ function NavBar({ onOpenSuggestions, currentUser }) {
   const chatCount = 2; // Example chat count
   const navItems = [
     { label: "Home", path: "/main-page" },
-    { label: "University", path: "/university-page" },
     { label: "Dashboard", path: "/dashboard" },
   ];
 

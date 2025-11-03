@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Container,
   Row,
@@ -16,7 +16,7 @@ import UniversityTable from "./UniversityTable";
 import UniversityChartByDep from "./UniversityChartByDep.jsx";
 import PedagogueTable from "./PedagogueTable.jsx";
 import universities from "./data.js";
-import { students } from "../mainPage/studentData.js";
+
 
 function Dashboard() {
   function calculateHierarchicalRankings(universities) {
@@ -26,6 +26,18 @@ function Dashboard() {
     // Assign rankings based on the sorted order
     return sorted.map((uni, index) => ({ ...uni, rank: index + 1 }));
   }
+
+  const [currentUser, setCurrentUser] = useState(null);
+  
+    useEffect(() => {
+      const user = JSON.parse(localStorage.getItem("currentUser"));
+      if (user) {
+        setCurrentUser(user);
+      } else {
+        // optionally redirect if not logged in
+        // navigate("/login");
+      }
+    }, []);
 
   const [selectedType, setSelectedType] = useState("All");
   const [searchProf, setSearchProf] = useState("");
@@ -155,9 +167,7 @@ function Dashboard() {
           : 0;
       return { ...uni, avgProgramRating };
     });
-  const currentUser =
-    students.find((student) => student.id === 1) || students[0];
-  console.log("Dashboard: currentUser", currentUser);
+  
   return (
     <>
       <NavBar currentUser={currentUser} />

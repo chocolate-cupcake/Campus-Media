@@ -1,7 +1,7 @@
 import { Container, Row, Col, Card } from "react-bootstrap";
 import NavBar from "./navBar.jsx";
 import { useNavigate } from "react-router-dom";
-import { students } from "./studentData.js";
+import { getStudents } from "./studentData.js";
 import { useEffect, useState } from "react";
 
 function Friends() {
@@ -20,6 +20,9 @@ function Friends() {
 
   // Show loading while currentUser is not ready
   if (!currentUser) return <p>Loading...</p>;
+
+  // Full friend objects
+  const students = getStudents();
 
   // Full friend objects
   const friends = students.filter((student) =>

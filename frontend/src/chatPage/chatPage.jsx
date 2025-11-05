@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import NavBar from "../mainPage/navBar.jsx";
 import ChatList from "./chatList.jsx";
 import ChatWindow from "./chatWindow.jsx";
-import { students } from "../mainPage/studentData.js";
+import { getStudents } from "../mainPage/studentData.js";
 import chatBackground from "../assets/chatBackground.jpeg";
 
 function ChatPage() {
@@ -16,6 +16,8 @@ function ChatPage() {
   }, []);
 
   // Prepare friends & users (hooks are at top level)
+  const students = getStudents();
+
   const friends = currentUser
     ? students.filter((student) => currentUser.friends.includes(student.id))
     : [];

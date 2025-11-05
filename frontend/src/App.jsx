@@ -16,6 +16,9 @@ function App() {
       <Routes> {/* for now this is our initial page since we have not made login page yet*/}
         <Route path="/" element={<LogIn />} />
       </Routes>
+      <Routes>
+        <Route path="logIn" element={<LogIn/>}/>
+      </Routes>
       {/* Route to main-page */}
       <Routes>
         <Route path="/main-page" element={<MainPage />} />

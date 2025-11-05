@@ -1,8 +1,9 @@
 import FeedContainer from "./feedContainer.jsx";
 import StorieSection from "./StoriesSection";
-import { students } from "./studentData.js";
+import { getStudents } from "./studentData.js";
 
 function MainPageContainer() {
+  const students = getStudents();
   // Simulated logged-in student (Alice)
   const currentUser = students.find((student) => student.id === 1);
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { students } from "./studentData.js";
+import { getStudents } from "./studentData.js";
 
 function StorieSection({ currentUserId = 1 }) {
   const [viewedStories, setViewedStories] = useState([]);
@@ -20,13 +20,16 @@ function StorieSection({ currentUserId = 1 }) {
   if (!currentUser) return <p>Loading...</p>;
 
   // Get friends of the current user safely
-  const friends = students.filter((s) =>
-    currentUser.friends?.includes(s.id)
-  );
+  const students = getStudents();
+
+  const friends = students.filter((s) => currentUser.friends?.includes(s.id));
 
   // Combine current user's stories + friends' stories
   const stories = [
-    ...(currentUser.stories || []).map((s) => ({ ...s, username: currentUser.name })),
+    ...(currentUser.stories || []).map((s) => ({
+      ...s,
+      username: currentUser.name,
+    })),
     ...friends.flatMap((friend) =>
       (friend.stories || []).map((s) => ({ ...s, username: friend.name }))
     ),

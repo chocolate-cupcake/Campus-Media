@@ -8,10 +8,11 @@ import {
   Toast,
   Offcanvas,
 } from "react-bootstrap";
-import { students } from "./studentData.js"; // ✅ import your real data
+import { getStudents } from "./studentData.js"; // ✅ import your real data
 
 function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
   // Simulated logged-in user
+  const students = getStudents();
   const currentUser = students.find((student) => student.id === 1);
 
   // Get real suggestions for this user

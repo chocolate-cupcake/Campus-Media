@@ -3,16 +3,27 @@ import Buttons from "./Buttons.jsx";
 import ProfilePic from "../assets/profilePic.jpg";
 import chatLogo from "../assets/chatLogo.png";
 import SearchBar from "./searchBar.jsx";
+import { FaUsers } from "react-icons/fa";
 
 function NavBar({ onOpenSuggestions, currentUser }) {
   const navigate = useNavigate();
-  // defensive defaults when currentUser is not provided
+
+  // ✅ Handle sign out
+  const handleSignOut = () => {
+    localStorage.removeItem("currentUser");
+    navigate("/logIn");
+    window.location.reload(); // ensures clean state
+  };
+
+  // ✅ Display defaults if user not logged in
   const displayImage = currentUser?.profileImage || ProfilePic;
   const displayName = currentUser?.name || "User";
   const chatCount = 2; // Example chat count
+
   const navItems = [
     { label: "Home", path: "/main-page" },
     { label: "Dashboard", path: "/dashboard" },
+    { label: "Sign Out", path: "/logIn" },
   ];
 
   return (
@@ -40,6 +51,7 @@ function NavBar({ onOpenSuggestions, currentUser }) {
           </span>
         </div>
 
+        {/* Brand name */}
         <span
           className="navbar-brand fw-bold fs-4"
           style={{ cursor: "pointer" }}
@@ -48,7 +60,7 @@ function NavBar({ onOpenSuggestions, currentUser }) {
           Campus Media
         </span>
 
-        {/* Mobile: open suggestions drawer (more discoverable than floating button) */}
+        {/* Mobile suggestions button */}
         {onOpenSuggestions && (
           <Buttons
             variant="light"
@@ -57,22 +69,13 @@ function NavBar({ onOpenSuggestions, currentUser }) {
             aria-label="Open suggestions"
             title="Suggestions"
           >
-            {/* People / suggestions icon (inline SVG) */}
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              fill="currentColor"
-              viewBox="0 0 16 16"
-              aria-hidden="true"
-            >
-              <path d="M13 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0zM9 8c0 1.105.672 2 1.5 2H14v1a1 1 0 0 1-1 1h-2.5A2.5 2.5 0 0 1 8 9.5V8h1zM3 7a2 2 0 1 0 0 .001A2 2 0 0 0 3 7zm2.5 3A2.5 2.5 0 0 1 3 12.5H1a1 1 0 0 1-1-1v-1h3.5z" />
-            </svg>
+            <FaUsers size={20} />
             <span className="visually-hidden">Suggestions</span>
           </Buttons>
         )}
 
-        <button // Mobile toggle button
+        {/* Navbar toggle (mobile) */}
+        <button
           className="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
@@ -84,11 +87,12 @@ function NavBar({ onOpenSuggestions, currentUser }) {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Nav links + chat */}
+        {/* Nav links and chat icon */}
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <div>
             <SearchBar />
           </div>
+
           <div className="ms-auto d-flex align-items-center gap-2">
             {/* Navigation buttons */}
             {navItems.map((item) => (
@@ -96,7 +100,10 @@ function NavBar({ onOpenSuggestions, currentUser }) {
                 key={item.label}
                 variant="light"
                 className="nav-btn-custom"
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  if (item.label === "Sign Out") handleSignOut();
+                  else navigate(item.path);
+                }}
               >
                 {item.label}
               </Buttons>

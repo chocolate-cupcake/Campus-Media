@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ListGroup,
   Image,
@@ -8,30 +8,70 @@ import {
   Toast,
   Offcanvas,
 } from "react-bootstrap";
-import { getStudents } from "./studentData.js"; // ✅ import your real data
+import { getStudents, updateStudent } from "./studentData.js"; // ✅ import your real data
 
 function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
-  // Simulated logged-in user
-  const students = getStudents();
-  const currentUser = students.find((student) => student.id === 1);
-
-  // Get real suggestions for this user
-  const suggestions = students.filter((student) =>
-    currentUser.suggestions.includes(student.id)
-  );
-
+  const [currentUser, setCurrentUser] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  function handleAdd(username) {
-    setToastMessage(`✅ You added ${username} as a friend`);
+  // Load current user from localStorage
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) {
+      setCurrentUser(user);
+    }
+  }, []);
+
+  // Get real suggestions for this user
+  const students = getStudents();
+  const suggestions = currentUser
+    ? students.filter((student) => currentUser.suggestions.includes(student.id))
+    : [];
+
+  function handleAdd(suggestionId, suggestionName) {
+    if (!currentUser) return;
+
+    // Add to friends and remove from suggestions
+    const updatedUser = {
+      ...currentUser,
+      friends: [...currentUser.friends, suggestionId],
+      suggestions: currentUser.suggestions.filter((id) => id !== suggestionId),
+    };
+
+    // Update in localStorage
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+    // Update in student data
+    updateStudent(currentUser.id, updatedUser);
+    // Update local state
+    setCurrentUser(updatedUser);
+
+    setToastMessage(`✅ You added ${suggestionName} as a friend`);
     setShowToast(true);
   }
 
-  function handleRemove(username) {
-    setToastMessage(`❌ You removed ${username} from suggestions`);
+  function handleRemove(suggestionId, suggestionName) {
+    if (!currentUser) return;
+
+    // Remove from suggestions
+    const updatedUser = {
+      ...currentUser,
+      suggestions: currentUser.suggestions.filter((id) => id !== suggestionId),
+    };
+
+    // Update in localStorage
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+    // Update in student data
+    updateStudent(currentUser.id, updatedUser);
+    // Update local state
+    setCurrentUser(updatedUser);
+
+    setToastMessage(`❌ You removed ${suggestionName} from suggestions`);
     setShowToast(true);
   }
+
+  // Show loading until currentUser is ready
+  if (!currentUser) return <p>Loading suggestions...</p>;
 
   return (
     <>
@@ -60,7 +100,7 @@ function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
                   <Button
                     variant="primary"
                     onClick={() => {
-                      handleAdd(s.name);
+                      handleAdd(s.id, s.name);
                       closeOffcanvas();
                     }}
                   >
@@ -69,7 +109,7 @@ function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
                   <Button
                     variant="danger"
                     onClick={() => {
-                      handleRemove(s.name);
+                      handleRemove(s.id, s.name);
                       closeOffcanvas();
                     }}
                   >
@@ -119,10 +159,16 @@ function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
                 <span>{s.name}</span>
               </div>
               <ButtonGroup size="sm">
-                <Button variant="primary" onClick={() => handleAdd(s.name)}>
+                <Button
+                  variant="primary"
+                  onClick={() => handleAdd(s.id, s.name)}
+                >
                   Add
                 </Button>
-                <Button variant="danger" onClick={() => handleRemove(s.name)}>
+                <Button
+                  variant="danger"
+                  onClick={() => handleRemove(s.id, s.name)}
+                >
                   -
                 </Button>
               </ButtonGroup>

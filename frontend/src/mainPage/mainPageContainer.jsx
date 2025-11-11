@@ -1,47 +1,67 @@
+import { useState, useEffect } from "react";
 import FeedContainer from "./feedContainer.jsx";
 import StorieSection from "./StoriesSection";
-import { getStudents } from "./studentData.js";
+import AddPostSection from "./addPostSection.jsx";
+import { getStudents, updateStudent } from "./studentData.js";
 
 function MainPageContainer() {
+  const [currentUser, setCurrentUser] = useState(null);
   const students = getStudents();
-  // Simulated logged-in student (Alice)
-  const currentUser = students.find((student) => student.id === 1);
 
-  // Get only this user's friends
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) setCurrentUser(user);
+  }, []);
+
+  if (!currentUser) return <p>Loading...</p>;
+
+  // Get only friends
   const friends = students.filter((student) =>
     currentUser.friends.includes(student.id)
   );
 
-  // Collect all posts from friends
-  const friendPosts = friends.flatMap((friend) => friend.posts);
+  // Combine all friend posts + user’s own posts
+  const friendPosts = [
+    ...friends.flatMap((friend) =>
+      friend.posts.map((post) => ({
+        ...post,
+        posterName: friend.name,
+        posterImage: friend.profileImage,
+        posterId: friend.id,
+      }))
+    ),
+    ...currentUser.posts.map((post) => ({
+      ...post,
+      posterName: currentUser.name,
+      posterImage: currentUser.profileImage,
+      posterId: currentUser.id,
+    })),
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-  return (
-    <div className="container my-4 d-flex flex-column align-items-center">
-      {/* Stories Section */}
-      <div className="">
-        <StorieSection />
-      </div>
+ return (
+  <div className="container my-4">
+    {/* Stories Section - full width */}
+    <div className="mb-4">
+      <StorieSection />
+    </div>
 
-      {/* Add Post Section */}
-      <div className="card w-100 mb-4" style={{ maxWidth: "600px" }}>
-        <div className="card-body">
-          <textarea
-            className="form-control"
-            rows="3"
-            placeholder="What's on your mind..."
-          ></textarea>
-        </div>
-        <div className="card-footer text-end">
-          <button className="btn btn-primary">Post</button>
-        </div>
-      </div>
-
-      {/* Feed Section — show friends' posts only */}
-      <div className="d-flex flex-column align-items-center w-100">
-        <FeedContainer posts={friendPosts} />
+    {/* Feed + Add Post Section - centered */}
+    <div className="d-flex flex-column align-items-center">
+      <div style={{ maxWidth: "600px", width: "100%" }}>
+        <AddPostSection
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
+        />
+        <FeedContainer
+          posts={friendPosts}
+          currentUser={currentUser}
+          setCurrentUser={setCurrentUser}
+        />
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
 export default MainPageContainer;

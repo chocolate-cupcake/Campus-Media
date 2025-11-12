@@ -8,29 +8,18 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LogIn from "./login_signUp/loginPage.jsx";
 
 function App() {
-  return(
-
-
+  return (
     <Router>
-
-      <Routes> {/* for now this is our initial page since we have not made login page yet*/}
+      <Routes>
+        {/* Login routes */}
         <Route path="/" element={<LogIn />} />
-      </Routes>
-      <Routes>
-        <Route path="logIn" element={<LogIn/>}/>
-      </Routes>
-      {/* Route to main-page */}
-      <Routes>
+        <Route path="/logIn" element={<LogIn />} />
+
+        {/* Main pages */}
         <Route path="/main-page" element={<MainPage />} />
-      </Routes>
-      <Routes>
-        <Route path="/friends" element = {<Friends/>}/>
-      </Routes>
-      <Routes>
-        <Route path="/dashboard" element = {<Dashboard/>}/>
-      </Routes>
-      <Routes>
-        <Route path="/chat" element = {<ChatPage/>}/>
+        <Route path="/friends" element={<Friends />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/chat" element={<ChatPage />} />
       </Routes>
     </Router>
   );

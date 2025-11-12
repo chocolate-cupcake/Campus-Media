@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Container, Form, Button, Alert } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { getStudents } from "../mainPage/studentData.js";
+import guestImg from "../assets/guest.png";
 
 function LoginForm({ switchToSignUp }) {
   const navigate = useNavigate();
@@ -9,10 +10,10 @@ function LoginForm({ switchToSignUp }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // ✅ Automatically redirect if user is already logged in
+  // ✅ Automatically redirect if user is already logged in (but not if they're a guest trying to sign up)
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
+    if (storedUser && !storedUser.includes("guest")) {
       navigate("/main-page");
     }
   }, [navigate]);
@@ -31,6 +32,27 @@ function LoginForm({ switchToSignUp }) {
     } else {
       setError("Invalid email or password");
     }
+  };
+
+  //  Handle Guest Login
+  const handleGuestLogin = () => {
+    const guestUser = {
+      id: -1,
+      name: "guest",
+      email: "guest@guest",
+      password: "",
+      university: "noInfo",
+      department: "noInfo",
+      profileImage: guestImg,
+      posts: [],
+      stories: [],
+      friends: [],
+      suggestions: [],
+      role: "guest", // Mark as guest
+    };
+
+    // Don't save to localStorage for guest (pass via state instead)
+    navigate("/dashboard", { state: { user: guestUser } });
   };
 
   return (
@@ -69,6 +91,15 @@ function LoginForm({ switchToSignUp }) {
           Log In
         </Button>
       </Form>
+
+      {/*  Sign in as Guest */}
+      <Button
+        variant="outline-secondary"
+        onClick={handleGuestLogin}
+        className="w-100 mt-3"
+      >
+        Continue as Guest
+      </Button>
 
       <p className="mt-3 text-center small text-muted">
         Don’t have an account?{" "}

@@ -9,6 +9,7 @@ import {
   InputGroup,
   Button,
 } from "react-bootstrap";
+import { useNavigate, useLocation } from "react-router-dom";
 import NavBar from "../mainPage/navBar.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./dashboard.css";
@@ -17,34 +18,30 @@ import UniversityChartByDep from "./UniversityChartByDep.jsx";
 import PedagogueTable from "./PedagogueTable.jsx";
 import universities from "./data.js";
 
-
 function Dashboard() {
-  function calculateHierarchicalRankings(universities) {
-    // Sort universities by their rating in descending order
-    let sorted = [...universities].sort((a, b) => b.rating - a.rating);
-    sorted = sorted.slice(0, 3);
-    // Assign rankings based on the sorted order
-    return sorted.map((uni, index) => ({ ...uni, rank: index + 1 }));
-  }
-
   const [currentUser, setCurrentUser] = useState(null);
-  
-    useEffect(() => {
-      const user = JSON.parse(localStorage.getItem("currentUser"));
-      if (user) {
-        setCurrentUser(user);
-      } else {
-        // optionally redirect if not logged in
-        // navigate("/login");
-      }
-    }, []);
-
+  const navigate = useNavigate();
+  const location = useLocation();
   const [selectedType, setSelectedType] = useState("All");
   const [searchProf, setSearchProf] = useState("");
   const [reviewedUniversities, setReviewedUniversities] = useState(new Set());
   const [reviewedProfessors, setReviewedProfessors] = useState(new Set());
+  const [studentUniversity, setStudentUniversity] = useState("Any");
+  const [studentCourses, setStudentCourses] = useState("");
+  const [matchedProfessors, setMatchedProfessors] = useState([]);
 
-  // collect all professors for search and listing
+  useEffect(() => {
+    // Check localStorage first (for logged-in users)
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) {
+      setCurrentUser(user);
+    } else if (location.state?.user) {
+      // Check router state for guest user
+      setCurrentUser(location.state.user);
+    }
+  }, [location.state]);
+
+  // Memoized values
   const allProfessors = useMemo(() => {
     const list = [];
     universities.forEach((uni) => {
@@ -57,15 +54,76 @@ function Dashboard() {
     return list;
   }, []);
 
-  // student matching state
-  const [studentUniversity, setStudentUniversity] = useState("Any");
-  const [studentCourses, setStudentCourses] = useState("");
-  const [matchedProfessors, setMatchedProfessors] = useState([]);
-
   const universityOptions = useMemo(
     () => ["Any", ...universities.map((u) => u.name)],
     []
   );
+
+  const filteredProfessors = useMemo(() => {
+    const term = searchProf.trim().toLowerCase();
+    if (!term) return allProfessors;
+    return allProfessors.filter((p) => {
+      const full = `${p.name} ${p.surname}`.toLowerCase();
+      return (
+        full.includes(term) ||
+        (p.courses || []).some((c) => c.toLowerCase().includes(term)) ||
+        (p.researchAreas || []).some((r) => r.toLowerCase().includes(term))
+      );
+    });
+  }, [searchProf, allProfessors]);
+
+  const availableTypes = useMemo(() => {
+    const typesSet = new Set();
+    universities.forEach((uni) => {
+      (uni.departments || []).forEach((dept) => {
+        (dept.programs || []).forEach((prog) => {
+          const progTypes = Array.isArray(prog.type)
+            ? prog.type
+            : prog.type
+            ? [prog.type]
+            : [];
+          progTypes.forEach((t) => {
+            if (t && t !== "All") typesSet.add(t);
+          });
+        });
+      });
+    });
+    const arr = Array.from(typesSet).sort();
+    return ["All", ...arr];
+  }, []);
+
+  const selectedValues = universities
+    .map((uni) => {
+      const departments = (uni.departments || [])
+        .map((dept) => {
+          const programs = (dept.programs || []).filter((program) =>
+            selectedType === "All" ? true : program.type?.includes(selectedType)
+          );
+          return { ...dept, programs };
+        })
+        .filter((dept) => (dept.programs || []).length > 0);
+      return { ...uni, departments };
+    })
+    .filter((uni) => (uni.departments || []).length > 0)
+    .map((uni) => {
+      const allPrograms = uni.departments.flatMap((d) => d.programs || []);
+      const avgProgramRating =
+        allPrograms.length > 0
+          ? allPrograms.reduce((s, p) => s + (p.rating || 0), 0) /
+            allPrograms.length
+          : 0;
+      return { ...uni, avgProgramRating };
+    });
+
+  if (!currentUser) return <p>Loading...</p>;
+
+  const isGuest = currentUser.role === "guest";
+
+  function calculateHierarchicalRankings(universities) {
+    let sorted = [...universities].sort((a, b) => b.rating - a.rating);
+    sorted = sorted.slice(0, 3);
+    return sorted.map((uni, index) => ({ ...uni, rank: index + 1 }));
+  }
 
   const findMatchesForStudent = () => {
     const terms = studentCourses
@@ -82,29 +140,14 @@ function Dashboard() {
       if (studentUniversity !== "Any" && p.university !== studentUniversity)
         return false;
       const profCourses = (p.courses || []).map((c) => c.toLowerCase());
-      // match if any student term appears inside any prof course
       return terms.some((t) => profCourses.some((pc) => pc.includes(t)));
     });
 
     setMatchedProfessors(matches);
   };
 
-  const filteredProfessors = useMemo(() => {
-    const term = searchProf.trim().toLowerCase();
-    if (!term) return allProfessors;
-    return allProfessors.filter((p) => {
-      const full = `${p.name} ${p.surname}`.toLowerCase();
-      return (
-        full.includes(term) ||
-        (p.courses || []).some((c) => c.toLowerCase().includes(term)) ||
-        (p.researchAreas || []).some((r) => r.toLowerCase().includes(term))
-      );
-    });
-  }, [searchProf, allProfessors]);
-
   const handleReviewUniversity = (uni) => {
     setReviewedUniversities((prev) => new Set(prev).add(uni.id));
-    // for now simply mark reviewed; a real implementation would open a review modal or navigate to a review form
   };
 
   const handleReviewProfessor = (prof) => {
@@ -115,62 +158,10 @@ function Dashboard() {
     setSelectedType(event.target.value);
   };
 
-  // derive available types dynamically from the programs data
-  const availableTypes = useMemo(() => {
-    // collect only program-level types (ignore department/university type fields)
-    const typesSet = new Set();
-    universities.forEach((uni) => {
-      (uni.departments || []).forEach((dept) => {
-        (dept.programs || []).forEach((prog) => {
-          const progTypes = Array.isArray(prog.type)
-            ? prog.type
-            : prog.type
-            ? [prog.type]
-            : [];
-          progTypes.forEach((t) => {
-            if (t && t !== "All") typesSet.add(t);
-          });
-        });
-      });
-    });
-
-    const arr = Array.from(typesSet).sort();
-    return ["All", ...arr];
-  }, []);
-
-  // Build a filtered view of universities where programs match the selectedType.
-  // Resulting shape: an array of universities with departments that only include matching programs.
-  const selectedValues = universities
-    .map((uni) => {
-      const departments = (uni.departments || [])
-        .map((dept) => {
-          const programs = (dept.programs || []).filter((program) =>
-            selectedType === "All" ? true : program.type?.includes(selectedType)
-          );
-
-          return { ...dept, programs };
-        })
-        // drop departments with no matching programs
-        .filter((dept) => (dept.programs || []).length > 0);
-
-      return { ...uni, departments };
-    })
-    // drop universities with no matching departments/programs
-    .filter((uni) => (uni.departments || []).length > 0)
-    // compute an average program rating per university (useful for charts)
-    .map((uni) => {
-      const allPrograms = uni.departments.flatMap((d) => d.programs || []);
-      const avgProgramRating =
-        allPrograms.length > 0
-          ? allPrograms.reduce((s, p) => s + (p.rating || 0), 0) /
-            allPrograms.length
-          : 0;
-      return { ...uni, avgProgramRating };
-    });
-  
   return (
     <>
-      <NavBar currentUser={currentUser} />
+      {!isGuest && <NavBar currentUser={currentUser} />}
+
       <Container className="dashboard-container mt-4">
         <Row className="align-items-center mb-3">
           <Col>
@@ -390,6 +381,14 @@ function Dashboard() {
           </Col>
         </Row>
       </Container>
+      {isGuest && (
+        <div className="text-center mt-5 mb-4">
+          <h5>Enjoying the preview? 🎓</h5>
+          <Button variant="primary" size="lg" onClick={() => navigate("/")}>
+            Sign Up to Unlock Full Access
+          </Button>
+        </div>
+      )}
     </>
   );
 }

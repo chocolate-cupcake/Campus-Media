@@ -36,3 +36,129 @@
   transition: all 0.3s ease;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
+
+/* ---------- Login Page Background ---------- */
+.login-page {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1280ef, #000000);
+  position: relative;
+}
+
+/* Optional: abstract shapes overlay */
+.login-page::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-image: 
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.05) 0%, transparent 60%),
+    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.08) 0%, transparent 60%);
+  z-index: 1;
+}
+
+/* Carousel container */
+.login-carousel-container {
+  width: 50%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  z-index: 2; /* make sure it's above background shapes */
+}
+
+.login-carousel-container .carousel-item img {
+  height: 100vh;
+  width: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Carousel captions for readability */
+.carousel-caption {
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  padding: 15px 20px;
+}
+
+.carousel-caption h2,
+.carousel-caption p {
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  margin: 0;
+}
+
+/* Login form side */
+.login-form-side {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  position: relative;
+  z-index: 2; 
+}
+
+/* Login Form Styling */
+.login-form, .signup-form {
+  max-width: 350px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.65); /* slightly more transparent */
+  padding: 40px 25px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px); /
+}
+
+
+.login-form:hover {
+  
+  box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+}
+
+.login-form h2 {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.login-form a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.login-form a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive: mobile-friendly */
+@media (max-width: 992px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-carousel-container,
+  .login-form-side {
+    width: 100%;
+    height: 50vh;
+  }
+
+  .login-form {
+    padding: 30px 20px;
+  }
+}
+.card {
+  transition: all 0.3s ease;
+}
+.card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+textarea.form-control:focus {
+  box-shadow: none !important;
+  background-color: #fff !important;
+}

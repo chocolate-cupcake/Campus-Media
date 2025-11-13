@@ -9,7 +9,7 @@ import universities from './data.js';
  * - top (number) : how many top pedagogues to show (default 5)
  * - professors (array) : optional array of professor objects to use instead of collecting from data.js
  */
-function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewedIds = new Set() }) {
+function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewedIds = new Set(), userReviewedIds = new Set(), canReview = () => true }) {
   const allProfessors = useMemo(() => {
     if (Array.isArray(professors)) return professors;
 
@@ -60,7 +60,8 @@ function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewe
             <td>{p.rating ?? '—'}</td>
             <td>{p.yearsOfExperience ?? '—'}</td>
             <td>
-              {reviewedIds && reviewedIds.has && reviewedIds.has(p.id) ? (
+              {userReviewedIds && userReviewedIds.has && userReviewedIds.has(p.id) ? (
+                // current user has authored a review for this pedagogue -> allow edit/delete
                 <div className="d-flex gap-2">
                   <Button size="sm" variant="outline-secondary" onClick={() => (onReview ? onReview(p) : console.log('Edit', p))}>
                     Edit
@@ -69,10 +70,17 @@ function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewe
                     Delete
                   </Button>
                 </div>
+              ) : (reviewedIds && reviewedIds.has && reviewedIds.has(p.id)) ? (
+                // someone else reviewed this pedagogue -> read-only
+                <Button size="sm" variant="outline-secondary" disabled>Viewed</Button>
               ) : (
-                <Button size="sm" variant="outline-primary" onClick={() => (onReview ? onReview(p) : console.log('Review', p))}>
-                  Review
-                </Button>
+                canReview(p) ? (
+                  <Button size="sm" variant="outline-primary" onClick={() => (onReview ? onReview(p) : console.log('Review', p))}>
+                    Review
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline-secondary" disabled>View</Button>
+                )
               )}
             </td>
           </tr>

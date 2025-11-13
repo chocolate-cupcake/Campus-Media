@@ -1,26 +1,44 @@
-import { useState } from "react";
-import uniDummyStory from "../assets/uniDummyStory.jpg";
-import uniDummyStory1 from "../assets/uniDummyStory1.jpg";
-import uniDummyStory2 from "../assets/uniDummyStory2.jpg";
+import { useState, useEffect } from "react";
+import { getStudents } from "./studentData.js";
 
 function StorieSection() {
   const [viewedStories, setViewedStories] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) {
+      setCurrentUser(user);
+    } else {
+      // optionally redirect if not logged in
+      // navigate("/login");
+    }
+  }, []);
+
+  // show loading until currentUser is loaded
+  if (!currentUser) return <p>Loading...</p>;
+
+  // Get friends of the current user safely
+  const students = getStudents();
+
+  const friends = students.filter((s) => currentUser.friends?.includes(s.id));
+
+  // Combine current user's stories + friends' stories
   const stories = [
-    { sername: "Marko_Epoka", image: uniDummyStory },
-    { username: "Jordy_FSHN", image: uniDummyStory1 },
-    { username: "Ana_UFO", image: uniDummyStory2 },
+    ...(currentUser.stories || []).map((s) => ({
+      ...s,
+      username: currentUser.name,
+    })),
+    ...friends.flatMap((friend) =>
+      (friend.stories || []).map((s) => ({ ...s, username: friend.name }))
+    ),
   ];
 
   const handleStoryClick = (index) => {
     const story = stories[index];
-    if (!viewedStories.includes(story.username)) {
-        {/* Here i create a new array same as the viewedStories but
-            i append in the end the next story (to mark it as viewed) so
-            the spread opearotr from JS (...) actually creates a copy of the viewed storys `
-            and prev means the previous state from UseState */}
-      setViewedStories((prev) => [...prev, story.username]);
+    if (!viewedStories.includes(story.id)) {
+      setViewedStories((prev) => [...prev, story.id]);
     }
     setActiveIndex(index);
   };
@@ -29,19 +47,13 @@ function StorieSection() {
 
   const goToNextStory = (e) => {
     e.stopPropagation();
-
     setActiveIndex((prev) => {
       if (prev < stories.length - 1) {
         const newIndex = prev + 1;
         const newStory = stories[newIndex];
-
-        // mark as viewed
-        setViewedStories((prevViewed) =>
-          prevViewed.includes(newStory.username)
-            ? prevViewed
-            : [...prevViewed, newStory.username]
-        );
-
+        if (!viewedStories.includes(newStory.id)) {
+          setViewedStories((prevViewed) => [...prevViewed, newStory.id]);
+        }
         return newIndex;
       }
       return prev;
@@ -50,27 +62,20 @@ function StorieSection() {
 
   const goToPrevStory = (e) => {
     e.stopPropagation();
-
     setActiveIndex((prev) => {
       if (prev > 0) {
         const newIndex = prev - 1;
         const newStory = stories[newIndex];
-
-        setViewedStories((prevViewed) =>
-          prevViewed.includes(newStory.username)
-            ? prevViewed
-            : [...prevViewed, newStory.username]
-        );
-
+        if (!viewedStories.includes(newStory.id)) {
+          setViewedStories((prevViewed) => [...prevViewed, newStory.id]);
+        }
         return newIndex;
       }
       return prev;
     });
   };
 
-  // Define the currently active story
-  const activeStory =
-    activeIndex !== null ? stories[activeIndex] : null;
+  const activeStory = activeIndex !== null ? stories[activeIndex] : null;
 
   return (
     <>
@@ -92,12 +97,12 @@ function StorieSection() {
         </style>
 
         {stories.map((story, index) => {
-          const isViewed = viewedStories.includes(story.username);
+          const isViewed = viewedStories.includes(story.id);
           const ringColor = isViewed ? "#adb5bd" : "#0d6efd"; // viewed vs new
 
           return (
             <div
-              key={story.username}
+              key={story.id}
               className="text-center"
               onClick={() => handleStoryClick(index)}
               style={{ cursor: "pointer" }}

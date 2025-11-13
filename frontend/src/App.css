@@ -1,5 +1,5 @@
 .main-page {
-  background-color: #f0f0f0;
+  background: linear-gradient(135deg, #E8F1FF 0%, #D4E8FF 100%);
   padding: 20px;
   font-family: Arial, sans-serif;
   margin: 0;
@@ -7,9 +7,9 @@
   font-size: var(--bs-body-font-size);
   font-weight: var(--bs-body-font-weight);
   line-height: var(--bs-body-line-height);
-  color: var(--bs-body-color);
+  color: #2C5AA0;
   text-align: var(--bs-body-text-align);
-  background-color: var(--bs-body-bg);
+  background: linear-gradient(135deg, #E8F1FF 0%, #D4E8FF 100%);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
@@ -166,19 +166,11 @@ textarea.form-control:focus {
 .friend-item {
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
+  color: #2C5AA0;
 }
 
 .friend-item:hover {
-  background-color: #f0f8ff; /* light blue shade */
+  background-color: #B8D4F1; /* medium blue shade */
   transform: scale(1.03);
-}
-
-.friend-item {
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.friend-item:hover {
-  background-color: #f0f8ff; /* light blue shade */
-  transform: scale(1.03);
+  color: #1a3a5c;
 }

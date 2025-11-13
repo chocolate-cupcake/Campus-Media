@@ -3,44 +3,115 @@
 }
 
 .dashboard-container{
-  max-width:1200px;
+  max-width:1100px;
 }
 
 .dashboard-title{
   font-weight:700;
   letter-spacing:0.2px;
+  font-size:1.25rem;
 }
 
 .type-select .form-select{ 
-  min-width:220px;
+  min-width:180px;
 }
 
 .type-badge{
-  border: 1px solid rgba(0,0,0,0.08);
-  padding: 0.45rem 0.7rem;
-  font-size:0.85rem;
+  border: 1px solid rgba(0,0,0,0.06);
+  padding: 0.25rem 0.5rem;
+  font-size:0.78rem;
 }
 
 .program-list{
   display:flex;
   flex-wrap:wrap;
-  gap:0.5rem;
+  gap:0.4rem;
+}
+
+/* scrollable matching programs area */
+.program-list-scroll{
+  max-height:320px; /* desktop */
+  overflow-y:auto;
+  padding-right:0.5rem; /* avoid content under scrollbar */
+}
+
+/* smaller height on narrow screens */
+@media (max-width: 991px){
+  .program-list-scroll{ max-height:220px }
+}
+
+/* compact reviews layout */
+.reviews-controls .input-group { display:flex; gap:0.5rem; }
+.reviews-card .compact-list .d-flex { padding: 0.35rem 0; }
+.xsmall{ font-size:0.75rem }
+.small{ font-size:0.9rem }
+
+@media (max-width: 767px){
+  /* keep controls stacked on very small screens */
+  .reviews-controls .input-group { flex-direction:column }
+  .reviews-controls .input-group .btn { width:100% }
+}
+
+/* compact pedagogue list */
+.pedagogue-list-scroll{
+  max-height:260px;
+  overflow-y:auto;
+  padding-right:0.5rem;
+}
+
+.pedagogue-list-scroll .table thead th{
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 2;
+}
+
+@media (max-width: 991px){
+  .pedagogue-list-scroll{ max-height:180px }
 }
 
 .program-card{
   display:inline-block;
   width: calc(50% - 0.5rem);
-  border-radius:8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius:6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  font-size:0.92rem;
 }
 
 .program-name{
   font-weight:600;
+  font-size:0.95rem;
 }
 
 .program-rating{
-  font-size:0.9rem;
-  padding:0.45rem 0.6rem;
+  font-size:0.85rem;
+  padding:0.35rem 0.5rem;
+}
+
+.card {
+  border-radius: var(--card-radius);
+}
+
+.card .card-body {
+  padding: 0.75rem 0.9rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.department-card, .program-card {
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+.list-group .d-flex {
+  padding: 0.45rem 0;
+}
+
+.compact-table thead th, .compact-table tbody td {
+  padding: 0.45rem 0.5rem;
+  vertical-align: middle;
 }
 
 @media (max-width: 767px){

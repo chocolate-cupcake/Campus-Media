@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Container,
   Row,
@@ -8,6 +8,7 @@ import {
   Badge,
   InputGroup,
   Button,
+  Modal,
 } from "react-bootstrap";
 import NavBar from "../mainPage/navBar.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -30,15 +31,24 @@ function Dashboard() {
   
 
 
+  // data state: loadable/persisted full dataset (universities, departments, professors, programs)
+  const [data, setData] = useState(universities);
   const [selectedType, setSelectedType] = useState("All");
   const [searchProf, setSearchProf] = useState("");
   const [reviewedUniversities, setReviewedUniversities] = useState(new Set());
   const [reviewedProfessors, setReviewedProfessors] = useState(new Set());
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewTarget, setReviewTarget] = useState(null); // {type:'uni'|'prof', id, name, currentRating}
+  const [reviewScore, setReviewScore] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewId, setReviewId] = useState(null);
+  // persisted reviews: array of { id, targetType: 'uni'|'prof', targetId, score, comment, date }
+  const [reviews, setReviews] = useState([]);
 
   // collect all professors for search and listing
   const allProfessors = useMemo(() => {
     const list = [];
-    universities.forEach((uni) => {
+    (data || []).forEach((uni) => {
       (uni.departments || []).forEach((dept) => {
         (dept.professors || []).forEach((p) => {
           list.push({ ...p, university: uni.name, department: dept.name });
@@ -46,14 +56,14 @@ function Dashboard() {
       });
     });
     return list;
-  }, []);
+  }, [data]);
 
   // student matching state
   const [studentUniversity, setStudentUniversity] = useState('Any');
   const [studentCourses, setStudentCourses] = useState('');
   const [matchedProfessors, setMatchedProfessors] = useState([]);
 
-  const universityOptions = useMemo(() => ['Any', ...universities.map(u => u.name)], []);
+  const universityOptions = useMemo(() => ['Any', ...((data || []).map(u => u.name))], [data]);
 
   const findMatchesForStudent = () => {
     const terms = studentCourses
@@ -86,23 +96,151 @@ function Dashboard() {
   }, [searchProf, allProfessors]);
 
   const handleReviewUniversity = (uni) => {
-    setReviewedUniversities(prev => new Set(prev).add(uni.id));
-    // for now simply mark reviewed; a real implementation would open a review modal or navigate to a review form
+    // open modal for university
+    openReview('uni', uni.id, uni.name, uni.rating);
   };
 
   const handleReviewProfessor = (prof) => {
-    setReviewedProfessors(prev => new Set(prev).add(prof.id));
+    // open modal for professor
+    openReview('prof', prof.id, `${prof.name} ${prof.surname}`, prof.rating);
+  };
+
+  const deleteReviewsFor = (targetType, targetId) => {
+    const newReviews = reviews.filter(r => !(r.targetType === targetType && r.targetId === targetId));
+    setReviews(newReviews);
+    // update reviewed sets
+    const uniSet = new Set();
+    const profSet = new Set();
+    newReviews.forEach(r => { if (r.targetType === 'uni') uniSet.add(r.targetId); if (r.targetType === 'prof') profSet.add(r.targetId); });
+    setReviewedUniversities(uniSet);
+    setReviewedProfessors(profSet);
+    // persist full state
+    try {
+      const state = JSON.parse(localStorage.getItem('campusMediaState')||'{}');
+      state.data = data;
+      state.reviews = newReviews;
+      localStorage.setItem('campusMediaState', JSON.stringify(state));
+    } catch(e){ console.error('Failed to persist after delete', e) }
+  };
+
+  const openReview = (type, id, name, currentRating) => {
+    // check for existing review
+    const existing = reviews.find(r => r.targetType === (type === 'uni' ? 'uni' : 'prof') && r.targetId === id);
+    if (existing) {
+      setReviewId(existing.id);
+      setReviewScore(existing.score);
+      setReviewComment(existing.comment || "");
+    } else {
+      setReviewId(null);
+      setReviewScore(5);
+      setReviewComment("");
+    }
+    setReviewTarget({ type, id, name, currentRating });
+    setReviewModalOpen(true);
+  };
+
+  const closeReview = () => {
+    setReviewModalOpen(false);
+    setReviewTarget(null);
+    setReviewScore(5);
+    setReviewComment("");
+    setReviewId(null);
+  };
+
+  const submitReview = () => {
+    if (!reviewTarget) return;
+    const { type, id } = reviewTarget;
+
+    const newReviews = [...reviews];
+    if (reviewId) {
+      // update
+      const idx = newReviews.findIndex(r => r.id === reviewId);
+      if (idx !== -1) {
+        newReviews[idx] = { ...newReviews[idx], score: Number(reviewScore), comment: reviewComment, date: new Date().toISOString() };
+      }
+    } else {
+      // add
+      const rid = Date.now().toString();
+      newReviews.push({ id: rid, targetType: type === 'uni' ? 'uni' : 'prof', targetId: id, score: Number(reviewScore), comment: reviewComment, date: new Date().toISOString() });
+    }
+
+    setReviews(newReviews);
+    // update reviewed sets
+    if (type === 'uni') setReviewedUniversities(s => new Set(s).add(id));
+    else setReviewedProfessors(s => new Set(s).add(id));
+
+    // persist
+    try {
+      const state = JSON.parse(localStorage.getItem('campusMediaState') || '{}');
+      // ensure we save the full dataset as well
+      state.data = data;
+      state.reviews = newReviews;
+      localStorage.setItem('campusMediaState', JSON.stringify(state));
+    } catch (e) {
+      console.error('Failed to persist reviews', e);
+    }
+
+    closeReview();
+  };
+
+  const getDisplayUniRating = (uni) => {
+    const revs = reviews.filter(r => r.targetType === 'uni' && r.targetId === uni.id);
+    if (!revs.length) return uni.rating;
+    const sum = revs.reduce((s, r) => s + (r.score || 0), 0);
+    const avg = (uni.rating + sum) / (1 + revs.length);
+    return Number(avg.toFixed(2));
+  };
+
+  const getDisplayProfRating = (prof) => {
+    const revs = reviews.filter(r => r.targetType === 'prof' && r.targetId === prof.id);
+    if (!revs.length) return prof.rating;
+    const sum = revs.reduce((s, r) => s + (r.score || 0), 0);
+    const avg = (prof.rating + sum) / (1 + revs.length);
+    return Number(avg.toFixed(2));
   };
 
   const handleTypeChange = (event) => {
     setSelectedType(event.target.value);
   };
 
+  // load persisted state (reviews) from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('campusMediaState');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // If there's saved data, load it
+        if (parsed.data) {
+          setData(parsed.data);
+        }
+        if (Array.isArray(parsed.reviews)) {
+          setReviews(parsed.reviews);
+          // set reviewed sets
+          const uniSet = new Set();
+          const profSet = new Set();
+          parsed.reviews.forEach(r => {
+            if (r.targetType === 'uni') uniSet.add(r.targetId);
+            if (r.targetType === 'prof') profSet.add(r.targetId);
+          });
+          setReviewedUniversities(uniSet);
+          setReviewedProfessors(profSet);
+        }
+        // If there was no saved data, persist the current default data so subsequent loads use local storage
+        if (!parsed.data) {
+          const state = { ...(parsed || {}), data: universities, reviews: parsed.reviews || [] };
+          localStorage.setItem('campusMediaState', JSON.stringify(state));
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load persisted state', e);
+    }
+  }, []);
+
   // derive available types dynamically from the programs data
   const availableTypes = useMemo(() => {
     // collect only program-level types (ignore department/university type fields)
     const typesSet = new Set();
-    universities.forEach((uni) => {
+    (data || []).forEach((uni) => {
       (uni.departments || []).forEach((dept) => {
         (dept.programs || []).forEach((prog) => {
           const progTypes = Array.isArray(prog.type)
@@ -119,37 +257,39 @@ function Dashboard() {
 
     const arr = Array.from(typesSet).sort();
     return ["All", ...arr];
-  }, []);
+  }, [data]);
 
   // Build a filtered view of universities where programs match the selectedType.
   // Resulting shape: an array of universities with departments that only include matching programs.
-  const selectedValues = universities
-    .map((uni) => {
-      const departments = (uni.departments || [])
-        .map((dept) => {
-          const programs = (dept.programs || []).filter((program) =>
-            selectedType === "All" ? true : program.type?.includes(selectedType)
-          );
+  const selectedValues = useMemo(() => {
+    return (data || [])
+      .map((uni) => {
+        const departments = (uni.departments || [])
+          .map((dept) => {
+            const programs = (dept.programs || []).filter((program) =>
+              selectedType === "All" ? true : program.type?.includes(selectedType)
+            );
 
-          return { ...dept, programs };
-        })
-        // drop departments with no matching programs
-        .filter((dept) => (dept.programs || []).length > 0);
+            return { ...dept, programs };
+          })
+          // drop departments with no matching programs
+          .filter((dept) => (dept.programs || []).length > 0);
 
-      return { ...uni, departments };
-    })
-    // drop universities with no matching departments/programs
-    .filter((uni) => (uni.departments || []).length > 0)
-    // compute an average program rating per university (useful for charts)
-    .map((uni) => {
-      const allPrograms = uni.departments.flatMap((d) => d.programs || []);
-      const avgProgramRating =
-        allPrograms.length > 0
-          ? allPrograms.reduce((s, p) => s + (p.rating || 0), 0) /
-            allPrograms.length
-          : 0;
-      return { ...uni, avgProgramRating };
-    });
+        return { ...uni, departments };
+      })
+      // drop universities with no matching departments/programs
+      .filter((uni) => (uni.departments || []).length > 0)
+      // compute an average program rating per university (useful for charts)
+      .map((uni) => {
+        const allPrograms = uni.departments.flatMap((d) => d.programs || []);
+        const avgProgramRating =
+          allPrograms.length > 0
+            ? allPrograms.reduce((s, p) => s + (p.rating || 0), 0) /
+              allPrograms.length
+            : 0;
+        return { ...uni, avgProgramRating };
+      });
+  }, [data, selectedType]);
 
   return (
     <>
@@ -194,7 +334,7 @@ function Dashboard() {
                   Top Ranked Universities
                 </Card.Title>
                 <UniversityTable
-                  universities={calculateHierarchicalRankings(universities)}
+                  universities={calculateHierarchicalRankings(data)}
                 />
               </Card.Body>
             </Card>
@@ -239,35 +379,37 @@ function Dashboard() {
               <Card.Body>
                 <Card.Title>Matching Programs</Card.Title>
                 {selectedValues.length > 0 ? (
-                  selectedValues.map((uni) => (
-                    <div className="mb-3" key={uni.id}>
-                      <h6 className="mb-1">{uni.name}</h6>
-                      <div className="program-list">
-                        {uni.departments
-                          .flatMap((d) => d.programs)
-                          .map((p) => (
-                            <Card key={p.id} className="program-card me-2 mb-2">
-                              <Card.Body className="p-2">
-                                <div className="d-flex justify-content-between align-items-start">
-                                  <div>
-                                    <div className="program-name">{p.name}</div>
-                                    <div className="text-muted small">
-                                      {p.degree} • {p.language} • {p.credits} cr
+                  <div className="program-list-scroll">
+                    {selectedValues.map((uni) => (
+                      <div className="mb-3" key={uni.id}>
+                        <h6 className="mb-1">{uni.name}</h6>
+                        <div className="program-list">
+                          {uni.departments
+                            .flatMap((d) => d.programs)
+                            .map((p) => (
+                              <Card key={p.id} className="program-card me-2 mb-2">
+                                <Card.Body className="p-2">
+                                  <div className="d-flex justify-content-between align-items-start">
+                                    <div>
+                                      <div className="program-name">{p.name}</div>
+                                      <div className="text-muted small">
+                                        {p.degree} • {p.language} • {p.credits} cr
+                                      </div>
                                     </div>
+                                    <Badge
+                                      bg="success"
+                                      className="program-rating"
+                                    >
+                                      {p.rating}
+                                    </Badge>
                                   </div>
-                                  <Badge
-                                    bg="success"
-                                    className="program-rating"
-                                  >
-                                    {p.rating}
-                                  </Badge>
-                                </div>
-                              </Card.Body>
-                            </Card>
-                          ))}
+                                </Card.Body>
+                              </Card>
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    ))}
+                  </div>
                 ) : (
                   <p className="text-muted">
                     No programs found for the selected type.
@@ -279,22 +421,25 @@ function Dashboard() {
         </Row>
         <Row className="mt-4">
           <Col lg={6} className="mb-3">
-            <Card className="shadow-sm h-100">
+            <Card className="shadow-sm h-100 reviews-card">
               <Card.Body>
                 <Card.Title>University Ratings & Reviews</Card.Title>
-                <p className="text-muted small">See which universities have ratings and add a review.</p>
-                <div className="list-group">
-                  {universities.map((uni) => (
-                    <div key={uni.id} className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                <p className="text-muted small mb-2">See which universities have ratings and add a review.</p>
+                <div className="list-group compact-list">
+                  {(data || []).map((uni) => (
+                    <div key={uni.id} className="d-flex justify-content-between align-items-center py-1 border-bottom">
                       <div>
-                        <strong>{uni.name}</strong>
-                        <div className="text-muted small">Rating: {uni.rating}</div>
+                        <strong className="small">{uni.name}</strong>
+                        <div className="text-muted xsmall">Rating: {getDisplayUniRating(uni)}</div>
                       </div>
                       <div>
                         {reviewedUniversities.has(uni.id) ? (
-                          <Badge bg="success">Reviewed</Badge>
+                          <div className="d-flex gap-2">
+                            <Button size="sm" variant="outline-secondary" onClick={() => openReview('uni', uni.id, uni.name, getDisplayUniRating(uni))}>Edit</Button>
+                            <Button size="sm" variant="outline-danger" onClick={() => deleteReviewsFor('uni', uni.id)}>Delete</Button>
+                          </div>
                         ) : (
-                          <Button size="sm" variant="outline-primary" onClick={() => handleReviewUniversity(uni)}>Review</Button>
+                          <Button size="sm" variant="outline-primary" onClick={() => openReview('uni', uni.id, uni.name, getDisplayUniRating(uni))}>Review</Button>
                         )}
                       </div>
                     </div>
@@ -305,48 +450,93 @@ function Dashboard() {
           </Col>
 
           <Col lg={6} className="mb-3">
-            <Card className="shadow-sm h-100">
+            <Card className="shadow-sm h-100 reviews-card">
               <Card.Body>
                 <Card.Title>Pedagogue Reviews</Card.Title>
-                <Form className="mb-3">
-                  <Row className="g-2">
-                    <Col sm={5}>
-                      <Form.Select value={studentUniversity} onChange={(e) => setStudentUniversity(e.target.value)}>
-                        {universityOptions.map(u => (
-                          <option key={u} value={u}>{u}</option>
-                        ))}
-                      </Form.Select>
-                    </Col>
-                    <Col sm={5}>
-                      <Form.Control
-                        placeholder="Enter courses student has taken (comma separated)"
-                        value={studentCourses}
-                        onChange={(e) => setStudentCourses(e.target.value)}
-                      />
-                    </Col>
-                    <Col sm={2} className="d-grid">
-                      <Button variant="primary" onClick={findMatchesForStudent}>Find</Button>
-                    </Col>
-                  </Row>
-                </Form>
+                <div className="reviews-controls mb-2">
+                  <InputGroup>
+                    <Form.Select value={studentUniversity} onChange={(e) => setStudentUniversity(e.target.value)} style={{minWidth:120}}>
+                      {universityOptions.map(u => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </Form.Select>
+                    <Form.Control
+                      placeholder="Courses taken (comma separated)"
+                      value={studentCourses}
+                      onChange={(e) => setStudentCourses(e.target.value)}
+                    />
+                    <Button variant="primary" onClick={findMatchesForStudent}>Find</Button>
+                  </InputGroup>
 
-                {studentCourses.trim() && (
-                  <div className="mb-2">
-                    <small className="text-muted">Showing matches for student at <strong>{studentUniversity}</strong> (courses: {studentCourses})</small>
-                  </div>
-                )}
+                  <InputGroup className="mt-2">
+                    <Form.Control
+                      placeholder="Search pedagogues by name, course or research area"
+                      value={searchProf}
+                      onChange={(e) => setSearchProf(e.target.value)}
+                    />
+                  </InputGroup>
+                </div>
 
-                <PedagogueTable
-                  top={50}
-                  professors={studentCourses.trim() ? matchedProfessors : filteredProfessors}
-                  onReview={handleReviewProfessor}
-                  reviewedIds={reviewedProfessors}
-                />
+                <div className="pedagogue-list-scroll">
+                  <PedagogueTable
+                    top={50}
+                    professors={(studentCourses.trim() ? matchedProfessors : filteredProfessors).map(p => ({ ...p, rating: getDisplayProfRating(p) }))}
+                    onReview={(p) => openReview('prof', p.id, `${p.name} ${p.surname}`, getDisplayProfRating(p))}
+                    onDeleteReview={(p) => deleteReviewsFor('prof', p.id)}
+                    reviewedIds={reviewedProfessors}
+                  />
+                </div>
               </Card.Body>
             </Card>
           </Col>
         </Row>
       </Container>
+      <Modal show={reviewModalOpen} onHide={closeReview} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Leave a Review</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {reviewTarget && (
+            <div className="mb-2">
+              <strong>{reviewTarget.name}</strong>
+              <div className="text-muted small">Current rating: {reviewTarget.currentRating}</div>
+            </div>
+          )}
+          <Form.Group className="mb-2">
+            <Form.Label>Score (1-5)</Form.Label>
+            <Form.Select value={reviewScore} onChange={(e) => setReviewScore(e.target.value)}>
+              <option value={1}>1</option>
+              <option value={2}>2</option>
+              <option value={3}>3</option>
+              <option value={4}>4</option>
+              <option value={5}>5</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Comment (optional)</Form.Label>
+            <Form.Control as="textarea" rows={3} placeholder="Leave a short comment..." value={reviewComment} onChange={(e) => setReviewComment(e.target.value)} />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={closeReview}>Cancel</Button>
+          {reviewId && (
+            <Button variant="danger" onClick={() => {
+              // delete review
+              const newReviews = reviews.filter(r => r.id !== reviewId);
+              setReviews(newReviews);
+              // update reviewed sets
+              const uniSet = new Set();
+              const profSet = new Set();
+              newReviews.forEach(r => { if (r.targetType === 'uni') uniSet.add(r.targetId); if (r.targetType === 'prof') profSet.add(r.targetId); });
+              setReviewedUniversities(uniSet);
+              setReviewedProfessors(profSet);
+              try { const state = JSON.parse(localStorage.getItem('campusMediaState')||'{}'); state.data = data; state.reviews = newReviews; localStorage.setItem('campusMediaState', JSON.stringify(state)); } catch(e){console.error(e)}
+              closeReview();
+            }}>Delete</Button>
+          )}
+          <Button variant="primary" onClick={submitReview}>Submit Review</Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }

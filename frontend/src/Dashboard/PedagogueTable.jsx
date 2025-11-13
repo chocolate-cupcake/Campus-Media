@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Table } from 'react-bootstrap';
+import { Table, Button, Badge } from 'react-bootstrap';
 import universities from './data.js';
 
 /**
@@ -9,7 +9,7 @@ import universities from './data.js';
  * - top (number) : how many top pedagogues to show (default 5)
  * - professors (array) : optional array of professor objects to use instead of collecting from data.js
  */
-function PedagogueTable({ top = 5, professors, onReview, reviewedIds = new Set() }) {
+function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewedIds = new Set() }) {
   const allProfessors = useMemo(() => {
     if (Array.isArray(professors)) return professors;
 
@@ -36,7 +36,7 @@ function PedagogueTable({ top = 5, professors, onReview, reviewedIds = new Set()
   }, [allProfessors, top]);
 
   return (
-    <Table striped bordered hover responsive className="mt-3">
+    <Table striped hover responsive className="mt-2 table-sm align-middle compact-table">
       <thead className="table-dark">
         <tr>
           <th>#</th>
@@ -61,14 +61,18 @@ function PedagogueTable({ top = 5, professors, onReview, reviewedIds = new Set()
             <td>{p.yearsOfExperience ?? '—'}</td>
             <td>
               {reviewedIds && reviewedIds.has && reviewedIds.has(p.id) ? (
-                <span className="text-success">Reviewed</span>
+                <div className="d-flex gap-2">
+                  <Button size="sm" variant="outline-secondary" onClick={() => (onReview ? onReview(p) : console.log('Edit', p))}>
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="outline-danger" onClick={() => (onDeleteReview ? onDeleteReview(p) : console.log('Delete', p))}>
+                    Delete
+                  </Button>
+                </div>
               ) : (
-                <button
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => (onReview ? onReview(p) : console.log('Review', p))}
-                >
+                <Button size="sm" variant="outline-primary" onClick={() => (onReview ? onReview(p) : console.log('Review', p))}>
                   Review
-                </button>
+                </Button>
               )}
             </td>
           </tr>

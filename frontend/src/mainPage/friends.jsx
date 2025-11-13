@@ -9,7 +9,7 @@ import oliviaImg from "../assets/olivia.jpg";
 import noahImg from "../assets/noah.jpg";
 import chloeImg from "../assets/chloe.jpg";
 import lucasImg from "../assets/lucas.jpg";
-import NavBar from "./NavBar";
+import NavBar from "./navBar";
 import { useNavigate } from "react-router-dom";
 
 // Export the friends data so it can be used in other components

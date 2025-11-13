@@ -162,3 +162,23 @@ textarea.form-control:focus {
   box-shadow: none !important;
   background-color: #fff !important;
 }
+
+.friend-item {
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.friend-item:hover {
+  background-color: #f0f8ff; /* light blue shade */
+  transform: scale(1.03);
+}
+
+.friend-item {
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.friend-item:hover {
+  background-color: #f0f8ff; /* light blue shade */
+  transform: scale(1.03);
+}

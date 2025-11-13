@@ -38,30 +38,28 @@ function MainPageContainer() {
     })),
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
- return (
-  <div className="container my-4">
-    {/* Stories Section - full width */}
-    <div className="mb-4">
+  return (
+    <div className="container-fluid p-0">
+      {" "}
+      {/* full width, no padding */}
+      {/* Stories Section - full width */}
       <StorieSection />
-    </div>
-
-    {/* Feed + Add Post Section - centered */}
-    <div className="d-flex flex-column align-items-center">
-      <div style={{ maxWidth: "600px", width: "100%" }}>
-        <AddPostSection
-          currentUser={currentUser}
-          setCurrentUser={setCurrentUser}
-        />
-        <FeedContainer
-          posts={friendPosts}
-          currentUser={currentUser}
-          setCurrentUser={setCurrentUser}
-        />
+      {/* Feed + Add Post Section - centered */}
+      <div className="d-flex flex-column align-items-center mt-3">
+        <div style={{ maxWidth: "600px", width: "100%" }}>
+          <AddPostSection
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+          />
+          <FeedContainer
+            posts={friendPosts}
+            currentUser={currentUser}
+            setCurrentUser={setCurrentUser}
+          />
+        </div>
       </div>
     </div>
-  </div>
-);
-
+  );
 }
 
 export default MainPageContainer;

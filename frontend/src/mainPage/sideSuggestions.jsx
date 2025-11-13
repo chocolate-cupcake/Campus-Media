@@ -8,9 +8,11 @@ import {
   Toast,
   Offcanvas,
 } from "react-bootstrap";
-import { getStudents, updateStudent } from "./studentData.js"; // ✅ import your real data
+import { getStudents, updateStudent } from "./studentData.js";
+import { useNavigate, Navigate } from "react-router-dom";
 
 function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
+  const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -120,14 +122,25 @@ function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
             ))}
           </ListGroup>
 
-          <Breadcrumb className="mt-3">
-            <Breadcrumb.Item href="/friends">
-              Check your Friends
-            </Breadcrumb.Item>
-            <Breadcrumb.Item href="/dashboard">
-              Do your rating 🌟
-            </Breadcrumb.Item>
-          </Breadcrumb>
+          <ul className="list-group list-group-flush">
+            <li
+              className="list-group-item friend-item" 
+              style={{}}
+              onClick={() => {
+                navigate("/friends");
+              }}
+            >
+              Check your Friends 🧑‍🤝‍🧑
+            </li>
+            <li
+              className="list-group-item friend-item"
+              onClick={() => {
+                navigate("/dashboard");
+              }}
+            >
+              Make a review ⭐
+            </li>
+          </ul>
         </Offcanvas.Body>
       </Offcanvas>
 
@@ -176,10 +189,25 @@ function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
           ))}
         </ListGroup>
 
-        <Breadcrumb>
-          <Breadcrumb.Item href="/friends">Check your Friends</Breadcrumb.Item>
-          <Breadcrumb.Item href="/dashboard">Do your rating 🌟</Breadcrumb.Item>
-        </Breadcrumb>
+        <ul className="list-group list-group-flush">
+          <li
+            className="list-group-item friend-item"
+            style={{}}
+            onClick={() => {
+              navigate("/friends");
+            }}
+          >
+            Check your Friends 🧑‍🤝‍🧑
+          </li>
+          <li
+            className="list-group-item friend-item"
+            onClick={() => {
+              navigate("/dashboard");
+            }}
+          >
+            Make a review ⭐
+          </li>
+        </ul>
 
         {/* Toast */}
         <div

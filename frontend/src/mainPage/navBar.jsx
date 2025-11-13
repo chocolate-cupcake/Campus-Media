@@ -27,7 +27,13 @@ function NavBar({ onOpenSuggestions, currentUser }) {
   ];
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <nav
+      className="navbar navbar-expand-lg navbar-light shadow-sm"
+      style={{
+        background: "linear-gradient(90deg, #4A90E2 0%, #357ABD 100%)",
+        boxShadow: "0 4px 12px rgba(74, 144, 226, 0.15)",
+      }}
+    >
       <div className="container px-4 px-lg-5">
         {/* Profile section */}
         <div className="me-3 d-flex flex-column align-items-center">
@@ -38,6 +44,10 @@ function NavBar({ onOpenSuggestions, currentUser }) {
                 currentUser ? `/profile/${currentUser.id}` : "/main-page"
               )
             }
+            style={{
+              borderRadius: "50%",
+              padding: "0",
+            }}
           >
             <img
               src={displayImage}
@@ -46,7 +56,10 @@ function NavBar({ onOpenSuggestions, currentUser }) {
               style={{ width: "40px", height: "40px" }}
             />
           </Buttons>
-          <span className="mt-1 text-center" style={{ fontSize: "0.8rem" }}>
+          <span
+            className="mt-1 text-center"
+            style={{ fontSize: "0.8rem", color: "#ffffff" }}
+          >
             {displayName}
           </span>
         </div>
@@ -54,7 +67,11 @@ function NavBar({ onOpenSuggestions, currentUser }) {
         {/* Brand name */}
         <span
           className="navbar-brand fw-bold fs-4"
-          style={{ cursor: "pointer" }}
+          style={{
+            cursor: "pointer",
+            color: "#ffffff",
+            textShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          }}
           onClick={() => navigate("/main-page")}
         >
           Campus Media
@@ -68,6 +85,9 @@ function NavBar({ onOpenSuggestions, currentUser }) {
             onClick={onOpenSuggestions}
             aria-label="Open suggestions"
             title="Suggestions"
+            style={{
+              color: "#ffffff",
+            }}
           >
             <FaUsers size={20} />
             <span className="visually-hidden">Suggestions</span>
@@ -104,6 +124,19 @@ function NavBar({ onOpenSuggestions, currentUser }) {
                   if (item.label === "Sign Out") handleSignOut();
                   else navigate(item.path);
                 }}
+                style={{
+                  color: "#ffffff",
+                  fontWeight: "500",
+                  transition: "all 0.3s ease",
+                  padding: "8px 16px",
+                  margin: "0 8px",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = "scale(1.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = "scale(1)";
+                }}
               >
                 {item.label}
               </Buttons>
@@ -114,6 +147,18 @@ function NavBar({ onOpenSuggestions, currentUser }) {
               variant="light"
               onClick={() => navigate("/chat")}
               className="d-flex align-items-center justify-content-center position-relative"
+              style={{
+                color: "#ffffff",
+                transition: "all 0.3s ease",
+                padding: "8px 16px",
+                margin: "0 8px",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = "scale(1)";
+              }}
             >
               <img
                 src={chatLogo}

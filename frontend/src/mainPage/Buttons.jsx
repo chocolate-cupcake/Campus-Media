@@ -2,7 +2,7 @@ function Buttons({
   children,
   type = "button",
   onClick,
-  variant = "primary",
+  // variant is unused in this lightweight button wrapper
   className = "",
   style = {},
   onMouseEnter,
@@ -12,7 +12,7 @@ function Buttons({
   return (
     <button
       type={type}
-      className={`${className}`}
+  className={`${className}`}
       style={{
         backgroundColor: "transparent",
         border: "none",

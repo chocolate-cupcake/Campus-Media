@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {Container, Row, Col,Card,Form,Badge,InputGroup,Button,Modal,} from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import NavBar from "../mainPage/navBar.jsx";
@@ -26,6 +27,8 @@ function Dashboard() {
   // data state: loadable/persisted full dataset (universities, departments, professors, programs)
   const [data, setData] = useState(universities);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [showGuestBanner, setShowGuestBanner] = useState(() => sessionStorage.getItem('hideGuestBanner') !== '1');
   const [currentUser, setCurrentUser] = useState(null);
   // students who can leave reviews (sourced from centralized studentData)
   const [students, setStudents] = useState(() => getStudents());
@@ -332,23 +335,27 @@ function Dashboard() {
     const na = normalize(a);
     const nb = normalize(b);
 
-    if (na === nb || na.includes(nb) || nb.includes(na)) return true;
+    // exact match only (avoid substring matches causing false positives)
+    if (na === nb) return true;
 
-    // Try to match via aliases defined in data.js
-    const findCanonical = (nameNorm) => {
+    // Try to match via aliases defined in data.js — resolve to canonical id
+    const findCanonicalId = (nameNorm) => {
       if (!data || !Array.isArray(data)) return null;
       for (const uni of data) {
         const candidates = [uni.name, ...(uni.aliases || [])];
         for (const c of candidates) {
-          if (normalize(c) === nameNorm) return uni.name;
+          if (normalize(c) === nameNorm) return uni.id;
         }
       }
       return null;
     };
 
-    const ca = findCanonical(na) || na;
-    const cb = findCanonical(nb) || nb;
-    return ca === cb || ca.includes(cb) || cb.includes(ca);
+    const caId = findCanonicalId(na);
+    const cbId = findCanonicalId(nb);
+    if (caId && cbId) return caId === cbId;
+
+    // Fallback to strict inclusion only if one side includes the other exactly
+    return na.includes(nb) || nb.includes(na);
   };
 
   const canUserReviewTarget = (tgt) => {
@@ -380,6 +387,24 @@ function Dashboard() {
       {!isGuest && <NavBar currentUser={currentUser} />}
 
       <Container className="dashboard-container mt-4">
+        {isGuest && showGuestBanner && (
+          <Row className="mb-3">
+            <Col>
+              <Card className="shadow-sm text-center">
+                <Card.Body>
+                  <Card.Title>You're browsing as a guest</Card.Title>
+                  <Card.Text className="text-muted">
+                    Sign up or log in to leave reviews, follow universities and get personalized recommendations.
+                  </Card.Text>
+                  <div className="d-flex justify-content-center gap-2">
+                    <Button variant="primary" onClick={() => navigate('/logIn')}>Sign up / Log in</Button>
+          
+                  </div>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+        )}
         <Row className="align-items-center mb-3">
           <Col>
             <h1 className="dashboard-title">University Insights</h1>
@@ -388,6 +413,8 @@ function Dashboard() {
               area.
             </p>
           </Col>
+         
+          
           <Col xs="auto">
             <InputGroup className="type-select">
               <Form.Select

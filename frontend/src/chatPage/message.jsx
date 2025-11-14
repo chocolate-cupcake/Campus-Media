@@ -1,20 +1,37 @@
 import React from "react";
+import { formatTimestamp } from "./messageModel.js";
+import "./chatStyles.css";
 
-function Message({ text, isOwn }) {
+/**
+ * Message Component
+ * 
+ * Displays a single message bubble in the chat conversation.
+ * Messages sent by the current user appear on the right (green),
+ * while messages from others appear on the left (white).
+ * 
+ * Props:
+ * @param {string} message - Text content of the message
+ * @param {string} emoji - Emoji image URL or Unicode character (optional)
+ * @param {boolean} isOwn - Whether this message was sent by the current user
+ * @param {number} timestamp - Unix timestamp in milliseconds
+ */
+function Message({ message, emoji, isOwn, timestamp }) {
   return (
-    <div className={`d-flex ${isOwn ? 'justify-content-end' : 'justify-content-start'}`} style={{ marginBottom: "10px" }}>
-      <div 
-        className="px-3 py-2"
-        style={{
-          maxWidth: "70%",
-          borderRadius: "8px",
-          backgroundColor: isOwn ? "#DCF8C6" : "#FFFFFF",
-          boxShadow: "0 1px 2px rgba(0,0,0,0.1)"
-        }}
-      >
-        <span className={isOwn ? 'text-end' : 'text-start'} style={{ wordBreak: "break-word" }}>
-          {text}
-        </span>
+    <div className={`message-wrapper ${isOwn ? "own-message" : "received-message"}`}>
+      <div className={`message-bubble ${isOwn ? "own" : "received"}`}>
+        {/* Message text content - emojis are included in the message text as Unicode */}
+        <p className="message-text">
+          {message || ""}
+          {/* Display additional emoji if stored separately */}
+          {emoji && <span className="message-emoji">{emoji}</span>}
+        </p>
+        
+        {/* Timestamp display - shows formatted time below message */}
+        {timestamp && (
+          <div className="message-timestamp">
+            {formatTimestamp(timestamp)}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,322 @@
+/**
+ * chatStyles.css
+ * 
+ * This file contains all the styling for the chat components.
+ * Styles are organized by component for better maintainability.
+ */
+
+/* ============================================
+   CHAT WINDOW STYLES
+   ============================================ */
+
+/* Main chat window container */
+.chat-window-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  width: 100%;
+  background-color: #f0f2f5;
+}
+
+/* Chat header - displays recipient info (Bootstrap Card) */
+.chat-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e4e6eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.chat-header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 12px;
+  border: 2px solid #e4e6eb;
+}
+
+.chat-header-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: #050505;
+  margin: 0;
+}
+
+/* ============================================
+   MESSAGES AREA STYLES
+   ============================================ */
+
+/* Container for all messages */
+.messages-container {
+  flex-grow: 1;
+  padding: 16px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for messages area */
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   MESSAGE BUBBLE STYLES
+   ============================================ */
+
+/* Message wrapper - handles alignment (left for received, right for sent) */
+.message-wrapper {
+  display: flex;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+.message-wrapper.own-message {
+  justify-content: flex-end;
+}
+
+.message-wrapper.received-message {
+  justify-content: flex-start;
+}
+
+/* Message bubble container */
+.message-bubble {
+  max-width: 70%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Own message (sent by current user) - green like WhatsApp */
+.message-bubble.own {
+  background-color: #dcf8c6;
+  border-bottom-right-radius: 2px;
+}
+
+/* Received message (from other user) - white like WhatsApp */
+.message-bubble.received {
+  background-color: #ffffff;
+  border-bottom-left-radius: 2px;
+}
+
+/* Message text content */
+.message-text {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #050505;
+  margin: 0;
+}
+
+/* Emoji image inside message */
+.message-emoji {
+  width: 24px;
+  height: 24px;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+/* Timestamp below message */
+.message-timestamp {
+  font-size: 11px;
+  color: #667781;
+  margin-top: 4px;
+  text-align: right;
+  font-weight: 400;
+}
+
+.message-bubble.received .message-timestamp {
+  text-align: left;
+}
+
+/* ============================================
+   INPUT AREA STYLES
+   ============================================ */
+
+/* Input area container (Bootstrap Card) */
+.chat-input-container {
+  background-color: #ffffff;
+  border-top: 1px solid #e4e6eb;
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* Input group wrapper - needs relative positioning for emoji picker */
+.input-group-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  position: relative; /* Required for absolute positioning of emoji picker */
+}
+
+/* Text input field (Bootstrap Form.Control with custom styling) */
+.message-input {
+  flex: 1;
+  border: 1px solid #e4e6eb !important;
+  font-size: 15px !important;
+}
+
+.message-input:focus {
+  border-color: #0084ff !important;
+  box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.1) !important;
+}
+
+.message-input::placeholder {
+  color: #8a8d91;
+}
+
+/* Emoji button (Bootstrap Button with custom styling) */
+.emoji-button {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 24px !important;
+  color: #0084ff !important;
+  border: none !important;
+}
+
+.emoji-button:hover {
+  background-color: #f0f2f5 !important;
+  color: #0084ff !important;
+}
+
+.emoji-button:active,
+.emoji-button:focus {
+  background-color: #e4e6eb !important;
+  color: #0084ff !important;
+  box-shadow: none !important;
+}
+
+/* Send button (Bootstrap Button with custom styling) */
+.send-button {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.send-button:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* ============================================
+   EMOJI PICKER STYLES
+   ============================================ */
+
+/* Emoji picker container (inside Bootstrap Dropdown.Menu) */
+.emoji-picker-container {
+  background-color: #ffffff;
+  padding: 12px;
+  min-width: 300px;
+}
+
+/* Bootstrap Dropdown Menu styling for emoji picker */
+.emoji-picker-menu {
+  min-width: 300px !important;
+  max-width: 350px !important;
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e4e6eb !important;
+  padding: 0 !important;
+}
+
+/* Emoji picker title */
+.emoji-picker-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #667781;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Emoji grid container */
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+/* Individual emoji button in picker */
+.emoji-option {
+  background-color: transparent;
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 24px;
+  padding: 0;
+}
+
+.emoji-option:hover {
+  background-color: #f0f2f5;
+}
+
+.emoji-option:active {
+  background-color: #e4e6eb;
+}
+
+/* Emoji category divider */
+.emoji-category {
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+
+.emoji-category:first-child {
+  margin-top: 0;
+}
+
+/* ============================================
+   RESPONSIVE STYLES
+   ============================================ */
+
+@media (max-width: 768px) {
+  .message-bubble {
+    max-width: 85%;
+  }
+
+  .emoji-picker-container {
+    min-width: 280px;
+    max-height: 200px;
+  }
+
+  .emoji-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+

@@ -4,6 +4,7 @@ import ProfilePic from "../assets/profilePic.jpg";
 import chatLogo from "../assets/chatLogo.png";
 import SearchBar from "./searchBar.jsx";
 import { FaUsers } from "react-icons/fa";
+import { isProfessor } from "../profile/userTypeUtils.js";
 
 function NavBar({ onOpenSuggestions, currentUser }) {
   const navigate = useNavigate();
@@ -39,11 +40,14 @@ function NavBar({ onOpenSuggestions, currentUser }) {
         <div className="me-3 d-flex flex-column align-items-center">
           <Buttons
             variant="light"
-            onClick={() =>
-              navigate(
-                currentUser ? `/profile/${currentUser.id}` : "/main-page"
-              )
-            }
+            onClick={() => {
+              if (currentUser) {
+                const route = isProfessor(currentUser.id) ? "/professor-profile" : "/student-profile";
+                navigate(route);
+              } else {
+                navigate("/main-page");
+              }
+            }}
             style={{
               borderRadius: "50%",
               padding: "0",

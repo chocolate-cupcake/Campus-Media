@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { updateStudent } from "./studentData.js";
+import { isProfessor } from "../profile/userTypeUtils.js";
 
 // Import icons
 import { FaImage, FaSmile, FaMapMarkerAlt } from "react-icons/fa";
 
 function AddPostSection({ currentUser, setCurrentUser }) {
+  const navigate = useNavigate();
   const [postText, setPostText] = useState("");
   const [postImage, setPostImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -68,7 +71,11 @@ function AddPostSection({ currentUser, setCurrentUser }) {
             src={currentUser.profileImage}
             alt={currentUser.name}
             className="rounded-circle"
-            style={{ width: "45px", height: "45px", objectFit: "cover" }}
+            style={{ width: "45px", height: "45px", objectFit: "cover", cursor: "pointer" }}
+            onClick={() => {
+              const route = isProfessor(currentUser.id) ? "/professor-profile" : "/student-profile";
+              navigate(route);
+            }}
           />
           <textarea
             className="form-control border-0"

@@ -103,16 +103,16 @@ function ChatWindow({ user }) {
   };
   
   return (
-    <div className="chat-window-container">
+    <div className="chat-window-container" style={{ backgroundColor: "#f8f9fa" }}>
       {/* Chat Header - displays recipient info using Bootstrap Card */}
-      <Card className="chat-header rounded-0 border-bottom-0">
+      <Card className="chat-header rounded-0 border-bottom shadow-sm" style={{ backgroundColor: "#E8F1FF", borderBottom: "2px solid #B8D4F1" }}>
         <Card.Body className="d-flex align-items-center py-2">
           <img
             src={user.avatar}
             alt={user.name}
             className="chat-header-avatar"
           />
-          <h5 className="chat-header-name mb-0 ms-2">{user.name}</h5>
+          <h5 className="chat-header-name mb-0 ms-2" style={{ color: "#357ABD" }}>{user.name}</h5>
         </Card.Body>
       </Card>
 

@@ -16,14 +16,12 @@
   flex: 1;
   height: 100%;
   width: 100%;
-  background-color: #f0f2f5;
+  background-color: #ffffff;
 }
 
 /* Chat header - displays recipient info (Bootstrap Card) */
 .chat-header {
-  background-color: #ffffff;
   border-bottom: 1px solid #e4e6eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .chat-header-avatar {
@@ -49,13 +47,14 @@
 /* Container for all messages */
 .messages-container {
   flex-grow: 1;
-  padding: 16px;
+  padding: 20px;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   scroll-behavior: smooth;
+  background-color: #ffffff;
 }
 
 /* Custom scrollbar for messages area */
@@ -106,24 +105,36 @@
   word-break: break-word;
 }
 
-/* Own message (sent by current user) - green like WhatsApp */
+/* Own message (sent by current user) - blue gradient like main page */
 .message-bubble.own {
-  background-color: #dcf8c6;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  color: #ffffff;
   border-bottom-right-radius: 2px;
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
 }
 
-/* Received message (from other user) - white like WhatsApp */
+/* Received message (from other user) - light blue like main page */
 .message-bubble.received {
-  background-color: #ffffff;
+  background-color: #E8F1FF;
   border-bottom-left-radius: 2px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* Message text content */
 .message-text {
   font-size: 14px;
   line-height: 1.4;
-  color: #050505;
   margin: 0;
+}
+
+/* Own message text color */
+.message-bubble.own .message-text {
+  color: #ffffff;
+}
+
+/* Received message text color */
+.message-bubble.received .message-text {
+  color: #050505;
 }
 
 /* Emoji image inside message */
@@ -138,13 +149,19 @@
 /* Timestamp below message */
 .message-timestamp {
   font-size: 11px;
-  color: #667781;
   margin-top: 4px;
   text-align: right;
   font-weight: 400;
 }
 
+/* Own message timestamp */
+.message-bubble.own .message-timestamp {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Received message timestamp */
 .message-bubble.received .message-timestamp {
+  color: #667781;
   text-align: left;
 }
 
@@ -155,8 +172,8 @@
 /* Input area container (Bootstrap Card) */
 .chat-input-container {
   background-color: #ffffff;
-  border-top: 1px solid #e4e6eb;
-  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05);
+  border-top: 2px solid #B8D4F1;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Input group wrapper - needs relative positioning for emoji picker */
@@ -168,16 +185,16 @@
   position: relative; /* Required for absolute positioning of emoji picker */
 }
 
-/* Text input field (Bootstrap Form.Control with custom styling) */
+/* Text input field (Bootstrap Form.Control with custom styling) - matches main page blue */
 .message-input {
   flex: 1;
-  border: 1px solid #e4e6eb !important;
+  border: 1px solid #B8D4F1 !important;
   font-size: 15px !important;
 }
 
 .message-input:focus {
-  border-color: #0084ff !important;
-  box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.1) !important;
+  border-color: #4A90E2 !important;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2) !important;
 }
 
 .message-input::placeholder {
@@ -210,7 +227,7 @@
   box-shadow: none !important;
 }
 
-/* Send button (Bootstrap Button with custom styling) */
+/* Send button (Bootstrap Button with custom styling) - matches main page blue */
 .send-button {
   width: 40px !important;
   height: 40px !important;
@@ -219,11 +236,20 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%) !important;
+  border: none !important;
+}
+
+.send-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #357ABD 0%, #2C6A9A 100%) !important;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
 }
 
 .send-button:disabled {
   opacity: 0.5 !important;
   cursor: not-allowed !important;
+  background: #cbd0d6 !important;
 }
 
 /* ============================================

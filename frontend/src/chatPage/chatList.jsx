@@ -20,13 +20,14 @@ function ChatList({ users, onSelect, selectedUser }) {
         width: "400px",
         height: "100%",
         overflowY: "auto",
-        backgroundColor: "rgba(255, 255, 255, 0.9)",
+        backgroundColor: "#ffffff",
+        boxShadow: "2px 0 8px rgba(0, 0, 0, 0.05)",
       }}
     >
       {/* Header using Bootstrap Card */}
-      <Card className="rounded-0 border-bottom-0 border-end-0">
+      <Card className="rounded-0 border-bottom shadow-sm" style={{ backgroundColor: "#E8F1FF", borderBottom: "2px solid #B8D4F1" }}>
         <Card.Body className="py-3">
-          <h5 className="mb-0 fw-bold">Messages</h5>
+          <h5 className="mb-0 fw-bold" style={{ color: "#357ABD" }}>Messages</h5>
         </Card.Body>
       </Card>
 
@@ -39,7 +40,21 @@ function ChatList({ users, onSelect, selectedUser }) {
             active={selectedUser?.id === user.id}
             onClick={() => onSelect(user)}
             className="d-flex align-items-center py-3 border-bottom"
-            style={{ cursor: "pointer" }}
+            style={{ 
+              cursor: "pointer",
+              backgroundColor: selectedUser?.id === user.id ? "#E8F1FF" : "#ffffff",
+              transition: "background-color 0.2s ease"
+            }}
+            onMouseEnter={(e) => {
+              if (selectedUser?.id !== user.id) {
+                e.currentTarget.style.backgroundColor = "#f8f9fa";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedUser?.id !== user.id) {
+                e.currentTarget.style.backgroundColor = "#ffffff";
+              }
+            }}
           >
             <img
               src={user.avatar}

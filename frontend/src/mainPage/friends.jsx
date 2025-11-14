@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card } from "react-bootstrap";
-import NavBar from "./navBar.jsx";
+import NavBar from "./navBar";
 import { useNavigate } from "react-router-dom";
 import { getStudents } from "./studentData.js";
 import { useEffect, useState } from "react";

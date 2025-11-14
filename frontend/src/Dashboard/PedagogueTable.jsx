@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Table } from 'react-bootstrap';
+import { Table, Button, Badge } from 'react-bootstrap';
 import universities from './data.js';
 
 /**
@@ -9,7 +9,7 @@ import universities from './data.js';
  * - top (number) : how many top pedagogues to show (default 5)
  * - professors (array) : optional array of professor objects to use instead of collecting from data.js
  */
-function PedagogueTable({ top = 5, professors, onReview, reviewedIds = new Set() }) {
+function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewedIds = new Set(), userReviewedIds = new Set(), canReview = () => true }) {
   const allProfessors = useMemo(() => {
     if (Array.isArray(professors)) return professors;
 
@@ -36,7 +36,7 @@ function PedagogueTable({ top = 5, professors, onReview, reviewedIds = new Set()
   }, [allProfessors, top]);
 
   return (
-    <Table striped bordered hover responsive className="mt-3">
+    <Table striped hover responsive className="mt-2 table-sm align-middle compact-table">
       <thead className="table-dark">
         <tr>
           <th>#</th>
@@ -60,15 +60,27 @@ function PedagogueTable({ top = 5, professors, onReview, reviewedIds = new Set()
             <td>{p.rating ?? '—'}</td>
             <td>{p.yearsOfExperience ?? '—'}</td>
             <td>
-              {reviewedIds && reviewedIds.has && reviewedIds.has(p.id) ? (
-                <span className="text-success">Reviewed</span>
+              {userReviewedIds && userReviewedIds.has && userReviewedIds.has(p.id) ? (
+                // current user has authored a review for this pedagogue -> allow edit/delete
+                <div className="d-flex gap-2">
+                  <Button size="sm" variant="outline-secondary" onClick={() => (onReview ? onReview(p) : console.log('Edit', p))}>
+                    Edit
+                  </Button>
+                  <Button size="sm" variant="outline-danger" onClick={() => (onDeleteReview ? onDeleteReview(p) : console.log('Delete', p))}>
+                    Delete
+                  </Button>
+                </div>
+              ) : (reviewedIds && reviewedIds.has && reviewedIds.has(p.id)) ? (
+                // someone else reviewed this pedagogue -> read-only
+                <Button size="sm" variant="outline-secondary" disabled>Viewed</Button>
               ) : (
-                <button
-                  className="btn btn-sm btn-outline-primary"
-                  onClick={() => (onReview ? onReview(p) : console.log('Review', p))}
-                >
-                  Review
-                </button>
+                canReview(p) ? (
+                  <Button size="sm" variant="outline-primary" onClick={() => (onReview ? onReview(p) : console.log('Review', p))}>
+                    Review
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="outline-secondary" disabled>View</Button>
+                )
               )}
             </td>
           </tr>

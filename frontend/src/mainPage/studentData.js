@@ -51,6 +51,8 @@ const defaultStudents = [
     ],
     friends: [2, 3, 5],
     suggestions: [4, 6],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
   {
     id: 2,
@@ -71,6 +73,8 @@ const defaultStudents = [
     stories: [{ id: 203, image: story3, viewed: true }],
     friends: [1, 4],
     suggestions: [3, 5],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
   {
     id: 3,
@@ -97,6 +101,8 @@ const defaultStudents = [
     stories: [],
     friends: [1, 5, 6],
     suggestions: [2, 4],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
   {
     id: 4,
@@ -117,6 +123,8 @@ const defaultStudents = [
     stories: [{ id: 204, image: story4, viewed: false }],
     friends: [2, 5],
     suggestions: [1, 3, 6],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
   {
     id: 5,
@@ -143,6 +151,8 @@ const defaultStudents = [
     stories: [{ id: 205, image: story5, viewed: false }],
     friends: [1, 3, 4],
     suggestions: [6],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
   {
     id: 6,
@@ -156,6 +166,8 @@ const defaultStudents = [
     stories: [],
     friends: [3, 5],
     suggestions: [1, 2],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
 ];
 
@@ -199,7 +211,7 @@ export function findStudentById(id) {
 export function addStudent(student) {
   const list = getStudents();
   const nextId = list.reduce((max, s) => Math.max(max, s.id), 0) + 1;
-  const newStudent = { id: nextId, ...student };
+  const newStudent = { id: nextId, universityReviews: [], pedagogueReviews: [], ...student };
   list.push(newStudent);
   writeStorage(list);
   return newStudent;
@@ -258,6 +270,8 @@ export const students = [
     ],
     friends: [2, 3, 5],
     suggestions: [4, 6],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
 
   {
@@ -279,6 +293,8 @@ export const students = [
     stories: [{ id: 203, image: story3, viewed: true }],
     friends: [1, 4],
     suggestions: [3, 5],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
 
   {
@@ -306,6 +322,8 @@ export const students = [
     stories: [],
     friends: [1, 5, 6],
     suggestions: [2, 4],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
 
   {
@@ -327,6 +345,8 @@ export const students = [
     stories: [{ id: 204, image: story4, viewed: false }],
     friends: [2, 5],
     suggestions: [1, 3, 6],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
 
   {
@@ -354,6 +374,8 @@ export const students = [
     stories: [{ id: 205, image: story5, viewed: false }],
     friends: [1, 3, 4],
     suggestions: [6],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
 
   {
@@ -368,5 +390,7 @@ export const students = [
     stories: [],
     friends: [3, 5],
     suggestions: [1, 2],
+    universityReviews: [],
+    pedagogueReviews: [],
   },
 ];

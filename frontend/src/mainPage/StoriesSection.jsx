@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getStudents } from "./studentData.js";
 
-function StorieSection({ currentUserId = 1 }) {
+function StorieSection() {
   const [viewedStories, setViewedStories] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
@@ -81,11 +81,13 @@ function StorieSection({ currentUserId = 1 }) {
     <>
       {/* Stories Section */}
       <div
-        className="d-flex gap-4 overflow-auto px-4 py-3 bg-light rounded-3 shadow-sm"
+        className="d-flex gap-4 overflow-auto px-4 py-3 rounded-3 shadow-sm"
         style={{
           whiteSpace: "nowrap",
           scrollbarWidth: "none",
           msOverflowStyle: "none",
+          backgroundColor: "#E8F1FF",
+          borderBottom: "2px solid #B8D4F1",
         }}
       >
         <style>
@@ -98,7 +100,7 @@ function StorieSection({ currentUserId = 1 }) {
 
         {stories.map((story, index) => {
           const isViewed = viewedStories.includes(story.id);
-          const ringColor = isViewed ? "#adb5bd" : "#0d6efd"; // viewed vs new
+          const ringColor = isViewed ? "#adb5bd" : "#4A90E2"; // viewed vs new
 
           return (
             <div
@@ -127,11 +129,12 @@ function StorieSection({ currentUserId = 1 }) {
                 />
               </div>
               <p
-                className="mt-2 text-secondary text-truncate"
+                className="mt-2 text-truncate"
                 style={{
                   width: "85px",
                   fontSize: "0.85rem",
                   fontWeight: "500",
+                  color: "#2C5AA0",
                 }}
               >
                 {story.username}

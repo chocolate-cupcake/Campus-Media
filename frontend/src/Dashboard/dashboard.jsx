@@ -17,16 +17,10 @@ import ReviewModal from "./ReviewModal.jsx";
 import universities from "./data.js";
 
 function Dashboard() {
-  function calculateHierarchicalRankings(universities) {
-    // Sort universities by their rating in descending order
-    let sorted = [...universities].sort((a, b) => b.rating - a.rating);
-    sorted = sorted.slice(0, 3);
-    // Assign rankings based on the sorted order
-    return sorted.map((uni, index) => ({ ...uni, rank: index + 1 }));
-  }
+  
+      const [data, setData] = useState(universities);
 
-  // data state: loadable/persisted full dataset (universities, departments, professors, programs)
-  const [data, setData] = useState(universities);
+  
   const location = useLocation();
   const navigate = useNavigate();
   const [showGuestBanner] = useState(
@@ -150,7 +144,7 @@ function Dashboard() {
     // check for existing review
     const existing = reviews.find(
       (r) =>
-        r.targetType === (type === "uni" ? "uni" : "prof") && r.targetId === id
+        r.targetType === type  && r.targetId === id
     );
     if (existing) {
       setReviewId(existing.id);
@@ -547,7 +541,6 @@ function Dashboard() {
                   Top Ranked Universities
                 </Card.Title>
                 <UniversityTable
-                  universities={calculateHierarchicalRankings(data)}
                 />
               </Card.Body>
             </Card>

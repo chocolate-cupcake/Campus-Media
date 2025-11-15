@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, Card, Button } from 'react-bootstrap';
 
-export default function GuestBanner({ show, onSignIn, onContinue }) {
+export default function GuestBanner({ show, onSignIn}) {
   if (!show) return null;
   return (
     <Row className="mb-3">
@@ -14,7 +14,6 @@ export default function GuestBanner({ show, onSignIn, onContinue }) {
             </Card.Text>
             <div className="d-flex justify-content-center gap-2">
               <Button variant="primary" onClick={onSignIn}>Sign up / Log in</Button>
-              <Button variant="outline-secondary" onClick={onContinue}>Continue as guest</Button>
             </div>
           </Card.Body>
         </Card>

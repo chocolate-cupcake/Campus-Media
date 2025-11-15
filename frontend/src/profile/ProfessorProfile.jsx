@@ -2,8 +2,9 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../mainPage/navBar.jsx";
 import { Container, Row, Col, Card, Button, Form, Image } from "react-bootstrap";
+import { FaTrash } from "react-icons/fa";
 
-function ProfessorProfile() {
+function ProfessorProfile({ professor }) {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
   const [bio, setBio] = useState("");
@@ -22,7 +23,10 @@ function ProfessorProfile() {
   const fileInputRef = useRef();
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
+    // prefer `professor` prop (from ProfileRouter) else fallback to currentUser in localStorage
+    const userFromLS = JSON.parse(localStorage.getItem("currentUser"));
+    const user = professor || userFromLS;
+
     if (!user) {
       navigate("/logIn");
       return;
@@ -42,7 +46,7 @@ function ProfessorProfile() {
     setLikesCount(savedLikesCount);
     setComments(savedComments);
     setPosts(savedPosts);
-  }, [navigate]);
+  }, [navigate, professor]);
 
   if (!currentUser) return null;
 
@@ -80,6 +84,26 @@ function ProfessorProfile() {
     setComments(updated);
     localStorage.setItem(`professor_comments_${currentUser.id}`, JSON.stringify(updated));
     setNewCommentText((s) => ({ ...s, [postId]: "" }));
+  };
+
+  // 🔹 Delete Post
+  const deletePost = (postId) => {
+    const updated = posts.filter(p => p.id !== postId);
+    setPosts(updated);
+    localStorage.setItem(`professor_posts_${currentUser.id}`, JSON.stringify(updated));
+    // Clean up related data
+    const newLikes = { ...likes };
+    const newLikesCount = { ...likesCount };
+    const newComments = { ...comments };
+    const newCommentText = { ...newCommentText };
+    delete newLikes[postId];
+    delete newLikesCount[postId];
+    delete newComments[postId];
+    delete newCommentText[postId];
+    setLikes(newLikes);
+    setLikesCount(newLikesCount);
+    setComments(newComments);
+    setNewCommentText(newCommentText);
   };
 
   const createPost = () => {
@@ -220,6 +244,15 @@ function ProfessorProfile() {
                       <div style={{ fontWeight: 600 }}>{currentUser.name}</div>
                       <small className="text-muted">{p.date}</small>
                     </div>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="ms-auto text-danger p-0"
+                      onClick={() => deletePost(p.id)}
+                      title="Delete post"
+                    >
+                      <FaTrash size={16} />
+                    </Button>
                   </div>
                   <Card.Text>{p.text}</Card.Text>
                   {p.feeling && <div>Feeling {p.feeling}</div>}

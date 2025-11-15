@@ -4,7 +4,6 @@ import ProfilePic from "../assets/profilePic.jpg";
 import chatLogo from "../assets/chatLogo.png";
 import SearchBar from "./searchBar.jsx";
 import { FaUsers } from "react-icons/fa";
-import { isProfessor } from "../profile/userTypeUtils.js";
 
 function NavBar({ onOpenSuggestions, currentUser }) {
   const navigate = useNavigate();
@@ -37,13 +36,12 @@ function NavBar({ onOpenSuggestions, currentUser }) {
     >
       <div className="container px-4 px-lg-5">
         {/* Profile section */}
-        <div className="me-3 d-flex flex-column align-items-center">
+          <div className="me-3 d-flex flex-column align-items-center">
           <Buttons
             variant="light"
             onClick={() => {
-              if (currentUser) {
-                const route = isProfessor(currentUser.id) ? "/professor-profile" : "/student-profile";
-                navigate(route);
+              if (currentUser && currentUser.id !== undefined && currentUser.id !== null) {
+                navigate(`/profile/${currentUser.id}`);
               } else {
                 navigate("/main-page");
               }

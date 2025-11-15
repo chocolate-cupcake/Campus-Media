@@ -73,8 +73,11 @@ function AddPostSection({ currentUser, setCurrentUser }) {
             className="rounded-circle"
             style={{ width: "45px", height: "45px", objectFit: "cover", cursor: "pointer" }}
             onClick={() => {
-              const route = isProfessor(currentUser.id) ? "/professor-profile" : "/student-profile";
-              navigate(route);
+              if (currentUser && currentUser.id !== undefined && currentUser.id !== null) {
+                navigate(`/profile/${currentUser.id}`);
+              } else {
+                navigate("/main-page");
+              }
             }}
           />
           <textarea

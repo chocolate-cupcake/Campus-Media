@@ -41,7 +41,9 @@ function NavBar({ onOpenSuggestions, currentUser }) {
             variant="light"
             onClick={() =>
               navigate(
-                currentUser ? `/profile/${currentUser.id}` : "/main-page"
+                currentUser
+                  ? `/profile?id=${encodeURIComponent(currentUser.id)}`
+                  : "/main-page"
               )
             }
             style={{
@@ -56,6 +58,7 @@ function NavBar({ onOpenSuggestions, currentUser }) {
               style={{ width: "40px", height: "40px" }}
             />
           </Buttons>
+
           <span
             className="mt-1 text-center"
             style={{ fontSize: "0.8rem", color: "#ffffff" }}

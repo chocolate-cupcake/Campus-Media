@@ -19,7 +19,7 @@ function LogIn() {
             <img className="d-block w-100" src={epokaUni} alt="EPOKA University" />
             <Carousel.Caption>
               <h2>EPOKA</h2>
-              <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
+              <p>RUN AWAY</p>
             </Carousel.Caption>
           </Carousel.Item>
 
@@ -27,7 +27,7 @@ function LogIn() {
             <img className="d-block w-100" src={ekonomiku} alt="Fakulteti Ekonomik" />
             <Carousel.Caption>
               <h2>Fakulteti Ekonomik</h2>
-              <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+              <p>Drive change with economics at UT.</p>
             </Carousel.Caption>
           </Carousel.Item>
 
@@ -35,7 +35,7 @@ function LogIn() {
             <img className="d-block w-100" src={fshn} alt="Fakulteti i Shkencave te Natyres" />
             <Carousel.Caption>
               <h2>Fakulteti i Shkencave te Natyres</h2>
-              <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
+              <p>Unlock nature’s secrets at FSHN</p>
             </Carousel.Caption>
           </Carousel.Item>
 
@@ -43,7 +43,7 @@ function LogIn() {
             <img className="d-block w-100" src={politekniku} alt="Universiteti Politeknik" />
             <Carousel.Caption>
               <h2>Universiteti Politeknik</h2>
-              <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
+              <p> We don’t just teach — we create solutions</p>
             </Carousel.Caption>
           </Carousel.Item>
         </Carousel>

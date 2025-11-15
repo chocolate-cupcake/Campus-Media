@@ -39,19 +39,11 @@ function ChatPage() {
   if (!currentUser || !selectedUser) return <p>Loading chat...</p>;
 
   return (
-    <div className="d-flex vh-100 flex-column">
-      <NavBar currentUser={currentUser} />
-      <div
-        className="d-flex"
-        style={{
-          flex: 1,
-          overflow: "hidden",
-          backgroundImage: `url(${chatBackground})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
+    <div className="d-flex flex-column vh-100">
+      <header>
+        <NavBar currentUser={currentUser} />
+      </header>
+      <div className="d-flex flex-grow-1" style={{ minHeight: 0, backgroundColor: "#f8f9fa" }}>
         <ChatList
           users={users}
           onSelect={setSelectedUser}

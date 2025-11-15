@@ -1,74 +1,142 @@
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { Card } from "react-bootstrap";
 import Message from "./message.jsx";
+import ChatInput from "./chatInput.jsx";
+import { getConversation, createMessage } from "./messageModel.js";
+import "./chatStyles.css";
 
+/**
+ * ChatWindow Component
+ * 
+ * Main chat interface component that displays messages and handles sending new messages.
+ * This component:
+ * - Loads messages from localStorage for the current conversation
+ * - Displays messages in chronological order
+ * - Allows sending text messages and emojis
+ * - Provides an emoji picker for quick emoji selection
+ * - Auto-scrolls to latest message when new messages arrive
+ * 
+ * Props:
+ * @param {Object} user - The user object representing the person you're chatting with
+ * @param {number} user.id - ID of the user you're chatting with
+ * @param {string} user.name - Name of the user
+ * @param {string} user.avatar - Avatar image URL
+ */
 function ChatWindow({ user }) {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hi!", isOwn: false },
-    { id: 2, text: "Hello!", isOwn: true },
-  ]);
-
-  const [newMessage, setNewMessage] = useState("");
-
-  const sendMessage = () => {
-    if (!newMessage.trim()) return;
-    setMessages([...messages, { id: Date.now(), text: newMessage, isOwn: true }]);
-    setNewMessage("");
+  // State for managing messages in the conversation
+  const [messages, setMessages] = useState([]);
+  
+  // Get current user from localStorage
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const currentUserId = currentUser ? currentUser.id : null;
+  
+  // Ref for scrolling to bottom of messages
+  const messagesEndRef = useRef(null);
+  
+  /**
+   * Loads messages from localStorage when the component mounts or when user changes
+   * This works like WhatsApp - it retrieves all messages between current user and selected user
+   */
+  useEffect(() => {
+    if (currentUserId && user?.id) {
+      // Get all messages in this conversation from localStorage
+      const conversationMessages = getConversation(currentUserId, user.id);
+      
+      // Transform messages to include isOwn flag for display purposes
+      const transformedMessages = conversationMessages.map((msg) => ({
+        ...msg,
+        isOwn: msg.senderId === currentUserId, // True if message was sent by current user
+      }));
+      
+      setMessages(transformedMessages);
+      
+      // Scroll to bottom when messages load
+      scrollToBottom();
+    }
+  }, [currentUserId, user?.id]);
+  
+  /**
+   * Scrolls the messages container to the bottom
+   * This ensures the latest message is always visible (like WhatsApp)
+   */
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+  
+  // Auto-scroll when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+  
+  /**
+   * Handles sending a message from the ChatInput component
+   * Creates a message object and saves it to localStorage
+   * Works like WhatsApp - messages are persisted and can be retrieved later
+   * 
+   * @param {string} messageText - The message text content
+   * @param {string} emoji - The emoji (if any) - emojis are stored as part of message text
+   */
+  const handleSendMessage = (messageText, emoji) => {
+    if (!messageText) return;
+    
+    if (currentUserId && user?.id) {
+      // Create and save message using messageModel
+      // Emojis are included in the message text itself (like WhatsApp)
+      const savedMessage = createMessage({
+        senderId: currentUserId,
+        receiverId: user.id,
+        message: messageText,
+        emoji: "", // Emojis are stored as part of message text
+      });
+      
+      if (savedMessage) {
+        // Add message to local state for immediate display
+        setMessages([
+          ...messages,
+          {
+            ...savedMessage,
+            isOwn: true,
+          },
+        ]);
+      }
     }
   };
-
+  
   return (
-    <div className="d-flex flex-column" style={{ flex: 1, height: "100%", width: "100%" }}>
-      {/* Chat header */}
-      <div className="bg-white border-bottom p-3 bg-opacity-90">
-        <div className="d-flex align-items-center">
+    <div className="chat-window-container" style={{ backgroundColor: "#f8f9fa" }}>
+      {/* Chat Header - displays recipient info using Bootstrap Card */}
+      <Card className="chat-header rounded-0 border-bottom shadow-sm" style={{ backgroundColor: "#E8F1FF", borderBottom: "2px solid #B8D4F1" }}>
+        <Card.Body className="d-flex align-items-center py-2">
           <img
             src={user.avatar}
             alt={user.name}
-            className="rounded-circle me-3"
-            style={{ width: "40px", height: "40px", objectFit: "cover" }}
+            className="chat-header-avatar"
           />
-          <h5 className="mb-0 fw-semibold">{user.name}</h5>
-        </div>
+          <h5 className="chat-header-name mb-0 ms-2" style={{ color: "#357ABD" }}>{user.name}</h5>
+        </Card.Body>
+      </Card>
+
+      {/* Messages Area - displays all messages in the conversation */}
+      <div className="messages-container">
+        {messages.map((msg) => (
+          <Message
+            key={msg.id}
+            message={msg.message}
+            emoji={msg.emoji}
+            isOwn={msg.isOwn}
+            timestamp={msg.timestamp}
+          />
+        ))}
+        {/* Invisible div to scroll to bottom */}
+        <div ref={messagesEndRef} />
       </div>
 
-      {/* Messages area */}
-      <div 
-        className="flex-grow-1 p-3"
-        style={{ 
-          overflowY: "auto"
-        }}
-      >
-        {messages.map(msg => <Message key={msg.id} {...msg} />)}
-      </div>
-
-      {/* Input area */}
-      <div className="bg-white border-top p-3 bg-opacity-90">
-        <div className="d-flex align-items-center gap-2">
-          <input
-            className="form-control"
-            style={{ borderRadius: "20px" }}
-            value={newMessage}
-            onChange={e => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Type a message..."
-          />
-          <button 
-            onClick={sendMessage} 
-            className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-            style={{ width: "42px", height: "42px", minWidth: "42px" }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
-              <path fillRule="evenodd" d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm-.792-.744L1.813 6.802l4.87-1.436z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+      {/* Input Area - uses ChatInput component */}
+      <ChatInput
+        onSend={handleSendMessage}
+        receiverId={user?.id}
+        disabled={!currentUserId || !user?.id}
+      />
     </div>
   );
 }

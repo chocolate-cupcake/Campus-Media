@@ -35,6 +35,35 @@ function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewe
       .slice(0, top);
   }, [allProfessors, top]);
 
+  const renderActions = (p) => {
+    // normalize sets to support either Set or plain object
+    const userHas = userReviewedIds && typeof userReviewedIds.has === 'function' && userReviewedIds.has(p.id);
+    const someoneHas = reviewedIds && typeof reviewedIds.has === 'function' && reviewedIds.has(p.id);
+
+    if (userHas) {
+      return (
+        <div className="d-flex gap-2">
+          <Button size="sm" variant="outline-secondary" onClick={() => (onReview ? onReview(p) : console.log('Edit', p))}>
+            Edit
+          </Button>
+          <Button size="sm" variant="outline-danger" onClick={() => (onDeleteReview ? onDeleteReview(p) : console.log('Delete', p))}>
+            Delete
+          </Button>
+        </div>
+      );
+    }
+
+    if (someoneHas) {
+      return <Button size="sm" variant="outline-secondary" disabled>Viewed</Button>;
+    }
+
+    if (canReview(p)) {
+      return <Button size="sm" variant="outline-primary" onClick={() => (onReview ? onReview(p) : console.log('Review', p))}>Review</Button>;
+    }
+
+    return <Button size="sm" variant="outline-secondary" disabled>View</Button>;
+  };
+
   return (
     <Table striped hover responsive className="mt-2 table-sm align-middle compact-table">
       <thead className="table-dark">
@@ -59,30 +88,7 @@ function PedagogueTable({ top = 5, professors, onReview, onDeleteReview, reviewe
             <td>{(p.courses || []).slice(0, 3).join(', ')}</td>
             <td>{p.rating ?? '—'}</td>
             <td>{p.yearsOfExperience ?? '—'}</td>
-            <td>
-              {userReviewedIds && userReviewedIds.has && userReviewedIds.has(p.id) ? (
-                // current user has authored a review for this pedagogue -> allow edit/delete
-                <div className="d-flex gap-2">
-                  <Button size="sm" variant="outline-secondary" onClick={() => (onReview ? onReview(p) : console.log('Edit', p))}>
-                    Edit
-                  </Button>
-                  <Button size="sm" variant="outline-danger" onClick={() => (onDeleteReview ? onDeleteReview(p) : console.log('Delete', p))}>
-                    Delete
-                  </Button>
-                </div>
-              ) : (reviewedIds && reviewedIds.has && reviewedIds.has(p.id)) ? (
-                // someone else reviewed this pedagogue -> read-only
-                <Button size="sm" variant="outline-secondary" disabled>Viewed</Button>
-              ) : (
-                canReview(p) ? (
-                  <Button size="sm" variant="outline-primary" onClick={() => (onReview ? onReview(p) : console.log('Review', p))}>
-                    Review
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline-secondary" disabled>View</Button>
-                )
-              )}
-            </td>
+            <td>{renderActions(p)}</td>
           </tr>
         ))}
       </tbody>

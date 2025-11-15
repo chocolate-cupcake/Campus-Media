@@ -115,7 +115,7 @@ const universities = [
   {
     id: 2,
     name: "Polytechnic University of Tirana",
-    aliases: ["Universiteti POLIS", "polis", "polytechnicuniversityoftirana"],
+    aliases: [ "polytechnicuniversityoftirana"],
     location: "Tirana, Albania",
     foundedYear: 1951,
     type: ["Public", "Engineering", "Technology", "All"],
@@ -228,7 +228,7 @@ const universities = [
     location: "Tirana, Albania",
     foundedYear: 2007,
     type: ["Private", "International", "Multidisciplinary", "All"],
-    rating: 4.8,
+    rating: 4.93,
     studentCount: 5000,
     departments: [
       {
@@ -253,14 +253,14 @@ const universities = [
           },
           {
             id: 1008,
-            name: "Jonida",
-            surname: "Cela",
+            name: "Ervis ",
+            surname: "Trupja",
             title: "Professor",
-            email: "j.cela@epoka.edu.al",
+            email: "e.trupja@epoka.edu.al",
             phone: "+355 4 444 011",
             office: "Epoka Main, Room 14",
-            courses: ["Data Science", "Statistics"],
-            rating: 4.6,
+            courses: ["Web Development"],
+            rating: 5.0,
             yearsOfExperience: 19,
             researchAreas: ["Data Science", "Statistics"]
           }
@@ -335,12 +335,11 @@ const universities = [
 export default universities;
 
 // Additional universities mirrored from studentData defaults
-// (Kept at the bottom so existing ordering/ranking above remains unchanged.)
 universities.push(
   {
     id: 4,
     name: "Universiteti POLIS",
-    aliases: ["Polytechnic University of Tirana", "POLIS", "polis"],
+    aliases: [ "POLIS", "polis"],
     location: "Tirana, Albania",
     foundedYear: 2006,
     type: ["Private", "Architecture", "All"],

@@ -10,28 +10,28 @@ function StorieSection() {
     const user = JSON.parse(localStorage.getItem("currentUser"));
     if (user) {
       setCurrentUser(user);
-    } else {
-      // optionally redirect if not logged in
-      // navigate("/login");
     }
   }, []);
 
-  // show loading until currentUser is loaded
+  // Don't load stories until currentUser is available
   if (!currentUser) return <p>Loading...</p>;
 
-  // Get friends of the current user safely
   const students = getStudents();
 
   const friends = students.filter((s) => currentUser.friends?.includes(s.id));
 
-  // Combine current user's stories + friends' stories
   const stories = [
     ...(currentUser.stories || []).map((s) => ({
       ...s,
       username: currentUser.name,
+      id: s.id || `${currentUser.id}-${Math.random()}`,
     })),
     ...friends.flatMap((friend) =>
-      (friend.stories || []).map((s) => ({ ...s, username: friend.name }))
+      (friend.stories || []).map((s) => ({
+        ...s,
+        username: friend.name,
+        id: s.id || `${friend.id}-${Math.random()}`,
+      }))
     ),
   ];
 
@@ -79,7 +79,7 @@ function StorieSection() {
 
   return (
     <>
-      {/* Stories Section */}
+      {/* Stories Row */}
       <div
         className="d-flex gap-4 overflow-auto px-4 py-3 rounded-3 shadow-sm"
         style={{
@@ -92,15 +92,15 @@ function StorieSection() {
       >
         <style>
           {`
-            div::-webkit-scrollbar {
-              display: none;
-            }
-          `}
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}
         </style>
 
         {stories.map((story, index) => {
           const isViewed = viewedStories.includes(story.id);
-          const ringColor = isViewed ? "#adb5bd" : "#4A90E2"; // viewed vs new
+          const ringColor = isViewed ? "#adb5bd" : "#4A90E2";
 
           return (
             <div
@@ -128,6 +128,7 @@ function StorieSection() {
                   }}
                 />
               </div>
+
               <p
                 className="mt-2 text-truncate"
                 style={{
@@ -160,9 +161,8 @@ function StorieSection() {
               overflow: "hidden",
               boxShadow: "0 0 20px rgba(0,0,0,0.3)",
             }}
-            onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Story image */}
             <img
               src={activeStory.image}
               alt={activeStory.username}
@@ -173,7 +173,6 @@ function StorieSection() {
               }}
             />
 
-            {/* Username overlay */}
             <div
               className="position-absolute bottom-0 w-100 text-center bg-dark bg-opacity-50 text-white py-2"
               style={{ fontWeight: "500" }}
@@ -181,7 +180,7 @@ function StorieSection() {
               {activeStory.username}
             </div>
 
-            {/* Close button */}
+            {/* Close */}
             <button
               type="button"
               className="btn btn-light btn-sm position-absolute top-0 end-0 m-2 rounded-circle"
@@ -190,7 +189,7 @@ function StorieSection() {
               ✕
             </button>
 
-            {/* Left Arrow */}
+            {/* Prev */}
             {activeIndex > 0 && (
               <button
                 type="button"
@@ -202,7 +201,7 @@ function StorieSection() {
               </button>
             )}
 
-            {/* Right Arrow */}
+            {/* Next */}
             {activeIndex < stories.length - 1 && (
               <button
                 type="button"

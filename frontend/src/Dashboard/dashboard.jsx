@@ -1,9 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Container,Row,Col,Card, Form,Badge,InputGroup,Button,} from "react-bootstrap";
+import { useState, useEffect } from "react";
+import { Container, Row, Col, Card } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
 import NavBar from "../mainPage/navBar.jsx";
-import { getStudents } from "../mainPage/studentData.js";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./dashboard.css";
 import UniversityTable from "./UniversityTable";
@@ -13,33 +11,10 @@ import GuestBanner from "./GuestBanner.jsx";
 import MatchingPrograms from "./MatchingPrograms.jsx";
 import UniversityReviewsPanel from "./UniversityReviewsPanel.jsx";
 import PedagogueReviewsPanel from "./PedagogueReviewsPanel.jsx";
-import ReviewModal from "./ReviewModal.jsx";
-import universities from "./data.js";
 
 function Dashboard() {
-  
-      const [data, setData] = useState(universities);
-
-  
   const location = useLocation();
-  const navigate = useNavigate();
-  const [showGuestBanner] = useState(
-    () => sessionStorage.getItem("hideGuestBanner") !== "1"
-  );
   const [currentUser, setCurrentUser] = useState(null);
-  // students who can leave reviews (sourced from centralized studentData)
-  const [students, setStudents] = useState(() => getStudents());
-  const [selectedType, setSelectedType] = useState("All");
-  const [searchProf, setSearchProf] = useState("");
-  const [reviewedUniversities, setReviewedUniversities] = useState(new Set());
-  const [reviewedProfessors, setReviewedProfessors] = useState(new Set());
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [reviewTarget, setReviewTarget] = useState(null); // {type:'uni'|'prof', id, name, currentRating}
-  const [reviewScore, setReviewScore] = useState(5);
-  const [reviewComment, setReviewComment] = useState("");
-  const [reviewId, setReviewId] = useState(null);
-  // persisted reviews: array of { id, targetType: 'uni'|'prof', targetId, score, comment, date }
-  const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
     // Check localStorage first (for logged-in users)
@@ -52,455 +27,21 @@ function Dashboard() {
     }
   }, [location.state]);
 
-  // Memoized values
-  const allProfessors = useMemo(() => {
-    const list = [];
-    (data || []).forEach((uni) => {
-      (uni.departments || []).forEach((dept) => {
-        (dept.professors || []).forEach((p) => {
-          list.push({ ...p, university: uni.name, department: dept.name });
-        });
-      });
-    });
-    return list;
-  }, [data]);
-
-  // sets of targets the current user has authored reviews for
-  const userReviewedProfessors = useMemo(
-    () =>
-      new Set(
-        reviews
-          .filter(
-            (r) =>
-              r.targetType === "prof" &&
-              String(r.reviewerId) === String(currentUser?.id)
-          )
-          .map((r) => r.targetId)
-      ),
-    [reviews, currentUser]
-  );
-  const userReviewedUniversities = useMemo(
-    () =>
-      new Set(
-        reviews
-          .filter(
-            (r) =>
-              r.targetType === "uni" &&
-              String(r.reviewerId) === String(currentUser?.id)
-          )
-          .map((r) => r.targetId)
-      ),
-    [reviews, currentUser]
-  );
-
-  // student matching state
-  const [studentUniversity, setStudentUniversity] = useState("Any");
-  const [studentCourses, setStudentCourses] = useState("");
-  const [matchedProfessors, setMatchedProfessors] = useState([]);
-
-  const universityOptions = useMemo(
-    () => ["Any", ...(data || []).map((u) => u.name)],
-    [data]
-  );
-
-  const findMatchesForStudent = () => {
-    const terms = studentCourses
-      .split(",")
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
-
-    if (terms.length === 0) {
-      setMatchedProfessors([]);
-      return;
-    }
-
-    const matches = allProfessors.filter((p) => {
-      if (studentUniversity !== "Any" && p.university !== studentUniversity)
-        return false;
-      const profCourses = (p.courses || []).map((c) => c.toLowerCase());
-      // match if any student term appears inside any prof course
-      return terms.some((t) => profCourses.some((pc) => pc.includes(t)));
-    });
-
-    setMatchedProfessors(matches);
-  };
-
-  const filteredProfessors = useMemo(() => {
-    const term = searchProf.trim().toLowerCase();
-    if (!term) return allProfessors;
-    return allProfessors.filter((p) => {
-      const full = `${p.name} ${p.surname}`.toLowerCase();
-      return (
-        full.includes(term) ||
-        (p.courses || []).some((c) => c.toLowerCase().includes(term)) ||
-        (p.researchAreas || []).some((r) => r.toLowerCase().includes(term))
-      );
-    });
-  }, [searchProf, allProfessors]);
-
-  // students list is loaded/persisted but reviewer selection UI has been removed
-
-  const openReview = (type, id, name, currentRating) => {
-    // check for existing review
-    const existing = reviews.find(
-      (r) =>
-        r.targetType === type  && r.targetId === id
-    );
-    if (existing) {
-      setReviewId(existing.id);
-      setReviewScore(existing.score);
-      setReviewComment(existing.comment || "");
-      // reviewer selection removed; modal will show info but editing only allowed for original author
-    } else {
-      setReviewId(null);
-      setReviewScore(5);
-      setReviewComment("");
-      // default reviewer will be current user on submit (if student)
-    }
-    setReviewTarget({ type, id, name, currentRating });
-    setReviewModalOpen(true);
-  };
-
-  const closeReview = () => {
-    setReviewModalOpen(false);
-    setReviewTarget(null);
-    setReviewScore(5);
-    setReviewComment("");
-    setReviewId(null);
-  };
-
-  const submitReview = () => {
-    if (!reviewTarget) return;
-    // only students are allowed to submit reviews
-    if (!isStudent) return;
-    // ensure the student can only review their own university/pedagogue
-    if (
-      reviewTarget.type === "uni" &&
-      !sameUniversity(currentUser.university, reviewTarget.name)
-    )
-      return;
-    if (reviewTarget.type === "prof") {
-      const prof = allProfessors.find((p) => p.id === reviewTarget.id);
-      if (!prof || !sameUniversity(prof.university, currentUser.university))
-        return;
-    }
-    const { type, id } = reviewTarget;
-
-    const newReviews = [...reviews];
-    if (reviewId) {
-      // update - only allow if current user is the original reviewer
-      const idx = newReviews.findIndex((r) => r.id === reviewId);
-      if (idx !== -1) {
-        const existing = newReviews[idx];
-        if (String(existing.reviewerId) !== String(currentUser.id)) return; // not allowed to edit
-        newReviews[idx] = {
-          ...existing,
-          score: Number(reviewScore),
-          comment: reviewComment,
-          reviewerId: existing.reviewerId || null,
-          date: new Date().toISOString(),
-        };
-      }
-    } else {
-      // add
-      const rid = Date.now().toString();
-      // reviewer is always the current logged-in student (no selector)
-      const reviewerToStore = isStudent ? String(currentUser.id) : null;
-      newReviews.push({
-        id: rid,
-        targetType: type === "uni" ? "uni" : "prof",
-        targetId: id,
-        score: Number(reviewScore),
-        comment: reviewComment,
-        reviewerId: reviewerToStore,
-        date: new Date().toISOString(),
-      });
-    }
-
-    setReviews(newReviews);
-    // update reviewed sets
-    if (type === "uni") setReviewedUniversities((s) => new Set(s).add(id));
-    else setReviewedProfessors((s) => new Set(s).add(id));
-
-    // persist
-    try {
-      const state = JSON.parse(
-        localStorage.getItem("campusMediaState") || "{}"
-      );
-      // ensure we save the full dataset as well
-      state.data = data;
-      state.reviews = newReviews;
-      state.students = students;
-      localStorage.setItem("campusMediaState", JSON.stringify(state));
-    } catch (e) {
-      console.error("Failed to persist reviews", e);
-    }
-
-    closeReview();
-  };
-
-  const getDisplayUniRating = (uni) => {
-    const revs = reviews.filter(
-      (r) => r.targetType === "uni" && r.targetId === uni.id
-    );
-    if (!revs.length) return uni.rating;
-    const sum = revs.reduce((s, r) => s + (r.score || 0), 0);
-    const avg = (uni.rating + sum) / (1 + revs.length);
-    return Number(avg.toFixed(2));
-  };
-
-  const getDisplayProfRating = (prof) => {
-    const revs = reviews.filter(
-      (r) => r.targetType === "prof" && r.targetId === prof.id
-    );
-    if (!revs.length) return prof.rating;
-    const sum = revs.reduce((s, r) => s + (r.score || 0), 0);
-    const avg = (prof.rating + sum) / (1 + revs.length);
-    return Number(avg.toFixed(2));
-  };
-
-  const handleTypeChange = (event) => {
-    setSelectedType(event.target.value);
-  };
-
-  // load persisted state (reviews) from localStorage
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("campusMediaState");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        // If there's saved data, load it. However, persisted state may be older
-        // and miss universities recently added to the local `data.js` file
-        // (for example POLIS, UBT, UTS, UET, Albanian University). Merge any
-        // missing entries from the default import so they appear in the UI.
-        if (parsed.data) {
-          try {
-            const parsedData = Array.isArray(parsed.data)
-              ? parsed.data.slice()
-              : [];
-            const existingIds = new Set(
-              parsedData.map((u) => u && u.id).filter(Boolean)
-            );
-            // `universities` is the default dataset imported at module top
-            (universities || []).forEach((defUni) => {
-              if (!existingIds.has(defUni.id)) parsedData.push(defUni);
-            });
-            setData(parsedData);
-          } catch (e) {
-            // fallback to parsed data if merge fails
-            console.error(
-              "Failed to merge persisted data with local defaults",
-              e
-            );
-            setData(parsed.data);
-          }
-        }
-        if (Array.isArray(parsed.reviews)) {
-          setReviews(parsed.reviews);
-          // set reviewed sets
-          const uniSet = new Set();
-          const profSet = new Set();
-          parsed.reviews.forEach((r) => {
-            if (r.targetType === "uni") uniSet.add(r.targetId);
-            if (r.targetType === "prof") profSet.add(r.targetId);
-          });
-          setReviewedUniversities(uniSet);
-          setReviewedProfessors(profSet);
-        }
-        // Use the centralized students store (single source of truth)
-        setStudents(getStudents());
-      }
-    } catch (e) {
-      console.error("Failed to load persisted state", e);
-    }
-  }, []);
-
-  // Listen for external changes to students storage so Dashboard stays in sync with MainPage
-  useEffect(() => {
-    const handler = (e) => {
-      if (!e) return;
-      // storage key used by studentData.js
-      if (e.key === "campus_media_students_v1") {
-        setStudents(getStudents());
-      }
-    };
-    window.addEventListener("storage", handler);
-    return () => window.removeEventListener("storage", handler);
-  }, []);
-
-  // derive available types dynamically from the programs data
-  const availableTypes = useMemo(() => {
-    const typesSet = new Set();
-    (data || []).forEach((uni) => {
-      (uni.departments || []).forEach((dept) => {
-        (dept.programs || []).forEach((prog) => {
-          const progTypes = Array.isArray(prog.type)
-            ? prog.type
-            : prog.type
-            ? [prog.type]
-            : [];
-          progTypes.forEach((t) => {
-            if (t && t !== "All") typesSet.add(t);
-          });
-        });
-      });
-    });
-    const arr = Array.from(typesSet).sort();
-    return ["All", ...arr];
-  }, [data]);
-
-  // Build a filtered view of universities where programs match the selectedType.
-  // Resulting shape: an array of universities with departments that only include matching programs.
-  const selectedValues = useMemo(() => {
-    return (
-      (data || [])
-        .map((uni) => {
-          const departments = (uni.departments || [])
-            .map((dept) => {
-              const programs = (dept.programs || []).filter((program) =>
-                selectedType === "All"
-                  ? true
-                  : program.type?.includes(selectedType)
-              );
-
-              return { ...dept, programs };
-            })
-            // drop departments with no matching programs
-            .filter((dept) => (dept.programs || []).length > 0);
-
-          return { ...uni, departments };
-        })
-        // drop universities with no matching departments/programs
-        .filter((uni) => (uni.departments || []).length > 0)
-        // compute an average program rating per university (useful for charts)
-        .map((uni) => {
-          const allPrograms = uni.departments.flatMap((d) => d.programs || []);
-          const avgProgramRating =
-            allPrograms.length > 0
-              ? allPrograms.reduce((s, p) => s + (p.rating || 0), 0) /
-                allPrograms.length
-              : 0;
-          return { ...uni, avgProgramRating };
-        })
-    );
-  }, [data, selectedType]);
+  // No dashboard-level data/filters needed anymore. Child components are self-contained.
 
   if (!currentUser) return <p>Loading...</p>;
 
   const userRole = currentUser.role || "student"; // default to student for users created via sign-up
   const isGuest = userRole === "guest";
-  const isStudent = userRole === "student";
-  // Helper to compare university names more robustly (handles minor naming differences)
-  const sameUniversity = (a, b) => {
-    if (!a || !b) return false;
-    const normalize = (s) =>
-      String(s)
-        .toLowerCase()
-        .replace(/[^a-z0-9]/g, "");
-    const na = normalize(a);
-    const nb = normalize(b);
-
-    // exact match only (avoid substring matches causing false positives)
-    if (na === nb) return true;
-
-    // Try to match via aliases defined in data.js — resolve to canonical id
-    const findCanonicalId = (nameNorm) => {
-      if (!data || !Array.isArray(data)) return null;
-      for (const uni of data) {
-        const candidates = [uni.name, ...(uni.aliases || [])];
-        for (const c of candidates) {
-          if (normalize(c) === nameNorm) return uni.id;
-        }
-      }
-      return null;
-    };
-
-    const caId = findCanonicalId(na);
-    const cbId = findCanonicalId(nb);
-    if (caId && cbId) return caId === cbId;
-
-    // Fallback to strict inclusion only if one side includes the other exactly
-    return na.includes(nb) || nb.includes(na);
-  };
-
-  const canUserReviewTarget = (tgt) => {
-    if (!isStudent || !tgt) return false;
-    if (tgt.type === "uni")
-      return sameUniversity(currentUser.university, tgt.name);
-    if (tgt.type === "prof") {
-      const prof = allProfessors.find((p) => p.id === tgt.id);
-      return !!prof && sameUniversity(prof.university, currentUser.university);
-    }
-    return false;
-  };
-
-  const deleteMyReview = (targetType, targetId) => {
-    // find the review authored by current user for this target
-    const idx = reviews.findIndex(
-      (r) =>
-        r.targetType === targetType &&
-        r.targetId === targetId &&
-        String(r.reviewerId) === String(currentUser.id)
-    );
-    if (idx === -1) return;
-    const newReviews = [...reviews.slice(0, idx), ...reviews.slice(idx + 1)];
-    setReviews(newReviews);
-    const uniSet = new Set();
-    const profSet = new Set();
-    newReviews.forEach((r) => {
-      if (r.targetType === "uni") uniSet.add(r.targetId);
-      if (r.targetType === "prof") profSet.add(r.targetId);
-    });
-    setReviewedUniversities(uniSet);
-    setReviewedProfessors(profSet);
-    try {
-      const state = JSON.parse(
-        localStorage.getItem("campusMediaState") || "{}"
-      );
-      state.data = data;
-      state.reviews = newReviews;
-      localStorage.setItem("campusMediaState", JSON.stringify(state));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const deleteReviewById = (rid) => {
-    const newReviews = reviews.filter((r) => r.id !== rid);
-    setReviews(newReviews);
-    const uniSet = new Set();
-    const profSet = new Set();
-    newReviews.forEach((r) => {
-      if (r.targetType === "uni") uniSet.add(r.targetId);
-      if (r.targetType === "prof") profSet.add(r.targetId);
-    });
-    setReviewedUniversities(uniSet);
-    setReviewedProfessors(profSet);
-    try {
-      const state = JSON.parse(
-        localStorage.getItem("campusMediaState") || "{}"
-      );
-      state.data = data;
-      state.reviews = newReviews;
-      localStorage.setItem("campusMediaState", JSON.stringify(state));
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // const isStudent = userRole === "student"; // no longer used at this level
+  // No review helpers or filters required at this level anymore.
 
   return (
     <>
       {!isGuest && <NavBar currentUser={currentUser} />}
 
       <Container className="dashboard-container mt-4">
-        <GuestBanner
-          show={isGuest && showGuestBanner}
-          onSignIn={() => navigate("/logIn")}
-          onContinue={() => {
-            sessionStorage.setItem("hideGuestBanner", "1");
-            window.location.reload();
-          }}
-        />
+        <GuestBanner />
         <Row className="align-items-center mb-3">
           <Col>
             <h1 className="dashboard-title">University Insights</h1>
@@ -508,28 +49,6 @@ function Dashboard() {
               Explore programs, compare universities and view ratings by study
               area.
             </p>
-          </Col>
-
-          <Col xs="auto">
-            <InputGroup className="type-select">
-              <Form.Select
-                aria-label="Filter by program type"
-                value={selectedType}
-                onChange={handleTypeChange}
-              >
-                {availableTypes.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </Form.Select>
-              <Button
-                variant="outline-secondary"
-                onClick={() => setSelectedType("All")}
-              >
-                Reset
-              </Button>
-            </InputGroup>
           </Col>
         </Row>
 
@@ -540,129 +59,33 @@ function Dashboard() {
                 <Card.Title className="mb-2">
                   Top Ranked Universities
                 </Card.Title>
-                <UniversityTable
-                />
+                <UniversityTable />
               </Card.Body>
             </Card>
             <Card className="shadow-sm mt-3">
               <Card.Body>
                 <Card.Title className="mb-2">Top Ranked Pedagogues</Card.Title>
-                <PedagogueTable
-                  top={5}
-                  professors={allProfessors.map((p) => ({
-                    ...p,
-                    rating: getDisplayProfRating(p),
-                  }))}
-                  reviewedIds={reviewedProfessors}
-                  userReviewedIds={userReviewedProfessors}
-                  canReview={(p) =>
-                    isStudent &&
-                    sameUniversity(currentUser.university, p.university)
-                  }
-                />
+                <PedagogueTable />
               </Card.Body>
             </Card>
           </Col>
 
           <Col lg={8}>
-            <Card className="shadow-sm mb-3">
-              <Card.Body>
-                <Card.Title>Ratings by Selected Area</Card.Title>
-                <div className="mb-2">
-                  {availableTypes.slice(0, 8).map((t) => (
-                    <Badge
-                      key={t}
-                      pill
-                      bg={t === selectedType ? "primary" : "light"}
-                      text={t === selectedType ? undefined : "dark"}
-                      className="me-2 type-badge"
-                      onClick={() => setSelectedType(t)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {t}
-                    </Badge>
-                  ))}
-                </div>
-
-                <UniversityChartByDep
-                  areaOfStudy={selectedType}
-                  universityData={selectedValues}
-                />
-              </Card.Body>
-            </Card>
-
-            <MatchingPrograms selectedValues={selectedValues} />
+            <UniversityChartByDep />
+            <div className="mt-3" />
+            <MatchingPrograms />
           </Col>
         </Row>
         <Row className="mt-4">
           <Col lg={6} className="mb-3">
-            <UniversityReviewsPanel
-              universities={data}
-              getDisplayUniRating={getDisplayUniRating}
-              reviewedUniversities={reviewedUniversities}
-              userReviewedUniversities={userReviewedUniversities}
-              openReview={openReview}
-              deleteMyReview={deleteMyReview}
-              isStudent={isStudent}
-              currentUser={currentUser}
-              sameUniversity={sameUniversity}
-            />
+            <UniversityReviewsPanel />
           </Col>
 
           <Col lg={6} className="mb-3">
-            <PedagogueReviewsPanel
-              studentUniversity={studentUniversity}
-              setStudentUniversity={setStudentUniversity}
-              studentCourses={studentCourses}
-              setStudentCourses={setStudentCourses}
-              findMatchesForStudent={findMatchesForStudent}
-              universityOptions={universityOptions}
-              searchProf={searchProf}
-              setSearchProf={setSearchProf}
-              professorsList={(studentCourses.trim()
-                ? matchedProfessors
-                : filteredProfessors
-              )
-                .filter((p) =>
-                  studentUniversity === "Any"
-                    ? true
-                    : sameUniversity(studentUniversity, p.university)
-                )
-                .map((p) => ({ ...p, rating: getDisplayProfRating(p) }))}
-              onReview={(p) =>
-                openReview(
-                  "prof",
-                  p.id,
-                  `${p.name} ${p.surname}`,
-                  getDisplayProfRating(p)
-                )
-              }
-              onDeleteReview={(p) => deleteMyReview("prof", p.id)}
-              reviewedProfessors={reviewedProfessors}
-              userReviewedProfessors={userReviewedProfessors}
-              canReview={(p) =>
-                isStudent &&
-                sameUniversity(currentUser.university, p.university)
-              }
-            />
+            <PedagogueReviewsPanel />
           </Col>
         </Row>
       </Container>
-      <ReviewModal
-        show={reviewModalOpen}
-        onHide={closeReview}
-        reviewTarget={reviewTarget}
-        reviewScore={reviewScore}
-        setReviewScore={setReviewScore}
-        reviewComment={reviewComment}
-        setReviewComment={setReviewComment}
-        submitReview={submitReview}
-        reviews={reviews}
-        reviewId={reviewId}
-        currentUser={currentUser}
-        deleteReviewById={deleteReviewById}
-        canUserReviewTarget={canUserReviewTarget}
-      />
     </>
   );
 }

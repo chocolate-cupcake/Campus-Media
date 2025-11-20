@@ -38,26 +38,26 @@ function NavBar({ onOpenSuggestions, currentUser }) {
         {/* Profile section */}
         <div className="me-3 d-flex flex-column align-items-center">
           <Buttons
-            variant="light"
-            onClick={() =>
-              navigate(
-                currentUser
-                  ? `/profile?id=${encodeURIComponent(currentUser.id)}`
-                  : "/main-page"
-              )
-            }
-            style={{
-              borderRadius: "50%",
-              padding: "0",
-            }}
-          >
-            <img
-              src={displayImage}
-              alt="Profile"
-              className="rounded-circle"
-              style={{ width: "40px", height: "40px" }}
-            />
-          </Buttons>
+                variant="light"
+                onClick={() => {
+                 if (currentUser && currentUser.id !== undefined && currentUser.id !== null) {
+                   navigate(`/profile/${currentUser.id}`);
+                 } else {
+                      navigate("/main-page");
+                 }
+               }}
+               style={{
+                 borderRadius: "50%",
+                 padding: "0",
+                }}
+            >
+                <img
+                  src={displayImage}
+                  alt="Profile"
+                  className="rounded-circle"
+                  style={{ width: "40px", height: "40px" }}
+                />
+           </Buttons>
 
           <span
             className="mt-1 text-center"

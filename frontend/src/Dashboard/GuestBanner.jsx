@@ -1,22 +1,13 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { Row, Col, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
+// GuestBanner
+// - Simple presentational component shown to unauthenticated users.
+// - Encourages guests to sign up or log in; contains navigation CTA only.
 export default function GuestBanner() {
   const navigate = useNavigate();
-  const show = useMemo(() => {
-    const hide = sessionStorage.getItem("hideGuestBanner") === "1";
-    if (hide) return false;
-    try {
-      const user = JSON.parse(localStorage.getItem("currentUser"));
-      const role = user?.role || "student";
-      return role === "guest";
-    } catch {
-      return false;
-    }
-  }, []);
-
-  if (!show) return null;
+  
 
   return (
     <Row className="mb-3">
@@ -32,15 +23,7 @@ export default function GuestBanner() {
               <Button variant="primary" onClick={() => navigate("/logIn")}>
                 Sign up / Log in
               </Button>
-              <Button
-                variant="outline-secondary"
-                onClick={() => {
-                  sessionStorage.setItem("hideGuestBanner", "1");
-                  window.location.reload();
-                }}
-              >
-                Dismiss
-              </Button>
+            
             </div>
           </Card.Body>
         </Card>

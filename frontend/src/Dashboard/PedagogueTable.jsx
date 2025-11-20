@@ -17,7 +17,13 @@ function PedagogueTable({
   userReviewedIds,
   canReview,
 }) {
-  // Internal state only used when corresponding props are not provided
+  // PedagogueTable can operate in two modes:
+  // - Controlled/external mode: parent provides `onReview`/`onDeleteReview`
+  //   and review sets (`reviewedIds`, `userReviewedIds`). In that case the
+  //   table is purely presentational.
+  // - Internal/fallback mode: when handlers are missing the table loads and
+  //   manages reviews itself using `localStorage` (`campusMediaState`).
+  // The `useInternal` flag below selects the fallback behavior.
   const [currentUser, setCurrentUser] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [internalReviewedIds, setInternalReviewedIds] = useState(new Set());
@@ -25,15 +31,17 @@ function PedagogueTable({
     new Set()
   );
 
+  // Modal state and form fields used by the internal fallback mode.
   const [modalOpen, setModalOpen] = useState(false);
   const [reviewTarget, setReviewTarget] = useState(null);
   const [reviewScore, setReviewScore] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [reviewId, setReviewId] = useState(null);
-
+  // Internal mode toggle and defaults
   const useInternal = !onReview && !onDeleteReview;
   const topCount = typeof top === "number" ? top : 5;
 
+  // Load current user and persisted reviews when in internal mode
   useEffect(() => {
     if (!useInternal) return;
     const user = JSON.parse(localStorage.getItem("currentUser"));
@@ -44,8 +52,8 @@ function PedagogueTable({
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
       }
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.error(err);
     }
   }, [useInternal]);
 
@@ -69,6 +77,8 @@ function PedagogueTable({
 
   const allProfessors = useMemo(() => {
     if (Array.isArray(professors)) return professors;
+    // Flatten the professors defined in `data.js` into a single array. Each
+    // item includes `university` and `department` to aid filtering and display.
     const list = [];
     (universities || []).forEach((uni) => {
       (uni.departments || []).forEach((dept) => {
@@ -82,6 +92,8 @@ function PedagogueTable({
 
   const getDisplayProfRating = useCallback(
     (prof) => {
+      // When operating in internal mode combine base `prof.rating` with any
+      // persisted reviews for that professor to produce a displayed average.
       if (!useInternal) return prof.rating;
       const revs = reviews.filter(
         (r) => r.targetType === "prof" && r.targetId === prof.id
@@ -105,25 +117,13 @@ function PedagogueTable({
     String(s)
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
+
+  // Compare university names using simple normalization only (no aliases).
   const sameUniversity = (a, b) => {
     if (!a || !b) return false;
     const na = normalize(a);
     const nb = normalize(b);
-    if (na === nb) return true;
-    const findCanonicalId = (nameNorm) => {
-      if (!universities || !Array.isArray(universities)) return null;
-      for (const uni of universities) {
-        const candidates = [uni.name, ...(uni.aliases || [])];
-        for (const c of candidates) {
-          if (normalize(c) === nameNorm) return uni.id;
-        }
-      }
-      return null;
-    };
-    const caId = findCanonicalId(na);
-    const cbId = findCanonicalId(nb);
-    if (caId && cbId) return caId === cbId;
-    return na.includes(nb) || nb.includes(na);
+    return na === nb || na.includes(nb) || nb.includes(na);
   };
 
   const internalCanReview = (p) => {
@@ -134,6 +134,8 @@ function PedagogueTable({
   };
 
   const persist = (newReviews) => {
+    // Save updated reviews to `campusMediaState.reviews` in localStorage.
+    // This is a small, defensive helper used by the internal fallback mode.
     try {
       const state = JSON.parse(
         localStorage.getItem("campusMediaState") || "{}"
@@ -146,6 +148,8 @@ function PedagogueTable({
   };
 
   const openInternal = (p) => {
+    // Open the modal with prefilled data if an existing review exists for
+    // this professor; otherwise initialize fields for a new review.
     const existing = reviews.find(
       (r) => r.targetType === "prof" && r.targetId === p.id
     );
@@ -168,6 +172,8 @@ function PedagogueTable({
   };
 
   const submitInternal = () => {
+    // Validate and store the review to local state + localStorage. Edits are
+    // permitted only if the current user is the original reviewer.
     if (!reviewTarget || !currentUser) return;
     const newReviews = [...reviews];
     if (reviewId) {
@@ -205,6 +211,7 @@ function PedagogueTable({
   };
 
   const deleteInternal = (p) => {
+    // Remove the current user's review for the given professor (if any).
     if (!currentUser) return;
     const idx = reviews.findIndex(
       (r) =>

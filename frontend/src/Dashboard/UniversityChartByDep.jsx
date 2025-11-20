@@ -22,6 +22,10 @@ ChartJS.register(
 );
 import universities from "./data.js";
 
+// UniversityChartByDep
+// - Renders a bar chart of universities' average ratings per study area.
+// - Subscribes to review updates from `localStorage` / `cm:reviews-updated` and
+//   recalculates adjusted ratings to reflect user reviews.
 function UniversityChartByDep() {
   const [selectedType, setSelectedType] = useState("All");
   const [reviews, setReviews] = useState([]);
@@ -33,8 +37,8 @@ function UniversityChartByDep() {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
       }
-    } catch (e) {
-      void 0;
+    } catch {
+      /* ignore parse errors */
     }
     const handler = (e) => {
       const next = Array.isArray(e?.detail) ? e.detail : null;
@@ -46,8 +50,8 @@ function UniversityChartByDep() {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
           }
-        } catch (e2) {
-          void 0;
+        } catch {
+          /* ignore parse errors */
         }
       }
     };

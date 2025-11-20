@@ -2,6 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import universities from "./data.js";
 import { Table } from "react-bootstrap";
 
+// UniversityTable
+// - Small ranking table that shows top universities by adjusted rating.
+// - Reads review snapshots and listens for `cm:reviews-updated` events to
+//   update displayed averages without requiring a full page reload.
 function UniversityTable() {
   const [reviews, setReviews] = useState([]);
 
@@ -12,8 +16,8 @@ function UniversityTable() {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
       }
-    } catch (e) {
-      void 0;
+    } catch {
+      /* ignore parse errors */
     }
     const handler = (e) => {
       const next = Array.isArray(e?.detail) ? e.detail : null;
@@ -25,8 +29,8 @@ function UniversityTable() {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
           }
-        } catch (e2) {
-          void 0;
+        } catch {
+          /* ignore parse errors */
         }
       }
     };

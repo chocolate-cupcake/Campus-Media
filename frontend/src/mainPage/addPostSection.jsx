@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { updateStudent } from "./studentData.js";
 import { useNavigate } from "react-router-dom";
+import ProfileLink from "../profile/ProfileLink.jsx";
+
 
 // Import icons
 import { FaImage, FaSmile, FaMapMarkerAlt } from "react-icons/fa";
@@ -67,18 +69,14 @@ function AddPostSection({ currentUser, setCurrentUser }) {
       <div className="card-body">
         <div className="d-flex align-items-start gap-2 mb-3">
           {/* ✅ Clickable profile picture */}
-          <Buttons
-            variant="light"
-            onClick={() => navigate(`/profile/${currentUser.id}`)}
-            style={{ padding: 0, borderRadius: "50%" }}
-          >
-            <img
-              src={currentUser.profileImage}
-              alt={currentUser.name}
-              className="rounded-circle"
-              style={{ width: "45px", height: "45px", objectFit: "cover", cursor: "pointer" }}
-            />
-          </Buttons>
+          <ProfileLink userId={currentUser?.id}>
+             <img
+                src={currentUser.profileImage}
+                alt={currentUser.name}
+                className="rounded-circle"
+                style={{ width: "45px", height: "45px", objectFit: "cover", cursor: "pointer" }}
+               />
+           </ProfileLink>
 
           <textarea
             className="form-control border-0"

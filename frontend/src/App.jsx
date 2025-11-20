@@ -7,6 +7,7 @@ import ChatPage from "./chatPage/chatPage.jsx";
 import StudentProfile from "./profile/StudentProfile.jsx";
 import ProfessorProfile from "./profile/ProfessorProfile.jsx";
 import ProfileRouter from "./profile/ProfileRouter.jsx";
+import ProfileLink from "./profile/ProfileLink.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LogIn from "./login_signUp/loginPage.jsx";
 
@@ -28,6 +29,7 @@ function App() {
         <Route path="/student-profile" element={<StudentProfile />} />
         <Route path="/professor-profile" element={<ProfessorProfile />} />
         <Route path="/profile/:id" element={<ProfileRouter />} />
+        <Route path="/profile-link/:id" element={<ProfileLink />} />
 
       </Routes>
     </Router>

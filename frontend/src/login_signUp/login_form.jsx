@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
-import { Container, Form, Button, Alert } from "react-bootstrap";
+import { Container, Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { getStudents } from "../mainPage/studentData.js";
 import guestImg from "../assets/guest.png";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 
 function LoginForm({ switchToSignUp }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  // ✅ Automatically redirect if user is already logged in (but not if they're a guest trying to sign up)
+  //  Automatically redirect if user is already logged in (but not if they're a guest trying to sign up)
   useEffect(() => {
     const storedUser = localStorage.getItem("currentUser");
     if (storedUser && !storedUser.includes("guest")) {
@@ -78,13 +80,22 @@ function LoginForm({ switchToSignUp }) {
 
         <Form.Group controlId="formPassword" className="mb-4">
           <Form.Label>Password</Form.Label>
-          <Form.Control
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <InputGroup>
+            <Form.Control
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <Button
+              variant="outline-secondary"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeSlash /> : <Eye />}
+            </Button>
+          </InputGroup>
         </Form.Group>
 
         <Button variant="primary" type="submit" className="w-100">

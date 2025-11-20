@@ -7,9 +7,11 @@ import {
   Image,
   Row,
   Col,
+  InputGroup,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { getStudents, addStudent } from "../mainPage/studentData.js";
+import { Eye, EyeSlash } from "react-bootstrap-icons";
 
 function SignUpForm({ switchToLogin }) {
   const navigate = useNavigate();
@@ -24,6 +26,7 @@ function SignUpForm({ switchToLogin }) {
   const [profileImage, setProfileImage] = useState(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -194,24 +197,42 @@ function SignUpForm({ switchToLogin }) {
         {/* 🔒 Passwords (side by side on larger screens) */}
         <Row className="mb-3">
           <Col sm={6}>
-            <Form.Control
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
+            <InputGroup>
+              <Form.Control
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+              <Button
+                variant="outline-secondary"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeSlash /> : <Eye />}
+              </Button>
+            </InputGroup>
           </Col>
           <Col sm={6}>
-            <Form.Control
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
+            <InputGroup>
+              <Form.Control
+                type={showPassword ? "text" : "password"}
+                name="confirmPassword"
+                placeholder="Confirm"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+              <Button
+                variant="outline-secondary"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeSlash /> : <Eye />}
+              </Button>
+            </InputGroup>
           </Col>
         </Row>
 

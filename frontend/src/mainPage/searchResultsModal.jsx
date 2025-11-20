@@ -1,8 +1,8 @@
 import { Card } from "react-bootstrap";
 import { useEffect, useState } from "react";
+import ProfileLink from "../profile/ProfileLink.jsx"; // make sure path is correct
 
-
-function SearchResultsModal({ results, onClickProfile, onClose }) {
+function SearchResultsModal({ results, onClose }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -25,24 +25,22 @@ function SearchResultsModal({ results, onClickProfile, onClose }) {
         ) : (
           <div className="search-grid">
             {results.map((student) => (
-              <Card
-                key={student.id}
-                className="search-card"
-                onClick={() => onClickProfile(student.id)}
-              >
-                <Card.Img
-                  variant="top"
-                  src={student.profileImage}
-                  alt={student.name}
-                  className="search-card-img"
-                />
-                <Card.Body className="search-card-body">
-                  <Card.Title className="search-card-title">{student.name}</Card.Title>
-                  <Card.Text className="search-card-text">
-                    {student.university} - {student.department}
-                  </Card.Text>
-                </Card.Body>
-              </Card>
+              <ProfileLink key={student.id} userId={student.id}>
+                <Card className="search-card">
+                  <Card.Img
+                    variant="top"
+                    src={student.profileImage}
+                    alt={student.name}
+                    className="search-card-img"
+                  />
+                  <Card.Body className="search-card-body">
+                    <Card.Title className="search-card-title">{student.name}</Card.Title>
+                    <Card.Text className="search-card-text">
+                      {student.university} - {student.department}
+                    </Card.Text>
+                  </Card.Body>
+                </Card>
+              </ProfileLink>
             ))}
           </div>
         )}

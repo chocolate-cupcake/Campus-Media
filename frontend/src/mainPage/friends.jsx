@@ -3,6 +3,7 @@ import NavBar from "./navBar";
 import { useNavigate } from "react-router-dom";
 import { getStudents } from "./studentData.js";
 import { useEffect, useState } from "react";
+import ProfileLink from "../profile/ProfileLink.jsx"; 
 
 function Friends() {
   const navigate = useNavigate();
@@ -46,24 +47,23 @@ function Friends() {
       <Row className="g-4">
         {friends.map((friend) => (
           <Col key={friend.id} xs={12} sm={6} md={4} lg={3}>
-            <Card
-              className="h-100 shadow-sm border-0 rounded-4"
-              style={{ cursor: "pointer" }}
-              onClick={() =>
-                navigate(`/profile?id=${encodeURIComponent(friend.id)}`)
-              }
-            >
-              <Card.Img
-                variant="top"
-                src={friend.profileImage}
-                alt={friend.name}
-                className="rounded-top-4"
-                style={{ objectFit: "cover", height: "220px" }}
-              />
-              <Card.Body className="text-center">
-                <Card.Title className="fw-semibold">{friend.name}</Card.Title>
-              </Card.Body>
-            </Card>
+            <ProfileLink userId={friend.id}>
+                <Card
+                   className="h-100 shadow-sm border-0 rounded-4"
+                   style={{ cursor: "pointer" }}
+               >
+                   <Card.Img
+                      variant="top"
+                      src={friend.profileImage}
+                      alt={friend.name}
+                      className="rounded-top-4"
+                      style={{ objectFit: "cover", height: "220px" }}
+                    />
+                     <Card.Body className="text-center">
+                       <Card.Title className="fw-semibold">{friend.name}</Card.Title>
+                     </Card.Body>
+                 </Card>
+             </ProfileLink>
           </Col>
         ))}
       </Row>

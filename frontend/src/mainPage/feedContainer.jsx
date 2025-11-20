@@ -4,6 +4,7 @@ import likedIcon from "../assets/likedIcon.png";
 import commentIcon from "../assets/commentIcon.png";
 import trashIcon from "../assets/trashIcon.png"; 
 import { updateStudent } from "./studentData.js";
+import ProfileLink from "../profile/ProfileLink.jsx"; 
 
 function FeedContainer({ posts, currentUser, setCurrentUser }) {
   const [likedPosts, setLikedPosts] = useState({});
@@ -40,12 +41,15 @@ function FeedContainer({ posts, currentUser, setCurrentUser }) {
           {/* Header: Poster Info */}
           <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center py-2">
             <div className="d-flex align-items-center gap-2">
-              <img
-                src={post.posterImage}
-                alt={post.posterName}
-                className="rounded-circle"
-                style={{ width: "40px", height: "40px", objectFit: "cover" }}
-              />
+              <ProfileLink userId={post.posterId}>
+                    <img
+                      src={post.posterImage}
+                      alt={post.posterName}
+                     className="rounded-circle"
+                     style={{ width: "40px", height: "40px", objectFit: "cover", cursor: "pointer" }}
+                    />
+               </ProfileLink>
+
               <div>
                 <span className="fw-semibold d-block">{post.posterName}</span>
                 <small className="text-muted">{post.date}</small>

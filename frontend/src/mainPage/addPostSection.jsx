@@ -1,10 +1,15 @@
 import { useState } from "react";
 import { updateStudent } from "./studentData.js";
+import { useNavigate } from "react-router-dom";
+import ProfileLink from "../profile/ProfileLink.jsx";
+
 
 // Import icons
 import { FaImage, FaSmile, FaMapMarkerAlt } from "react-icons/fa";
+import Buttons from "../mainPage/Buttons.jsx";
 
 function AddPostSection({ currentUser, setCurrentUser }) {
+  const navigate = useNavigate();
   const [postText, setPostText] = useState("");
   const [postImage, setPostImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -62,14 +67,17 @@ function AddPostSection({ currentUser, setCurrentUser }) {
       }}
     >
       <div className="card-body">
-        {/* Profile + Input Row */}
         <div className="d-flex align-items-start gap-2 mb-3">
-          <img
-            src={currentUser.profileImage}
-            alt={currentUser.name}
-            className="rounded-circle"
-            style={{ width: "45px", height: "45px", objectFit: "cover" }}
-          />
+          {/* ✅ Clickable profile picture */}
+          <ProfileLink userId={currentUser?.id}>
+             <img
+                src={currentUser.profileImage}
+                alt={currentUser.name}
+                className="rounded-circle"
+                style={{ width: "45px", height: "45px", objectFit: "cover", cursor: "pointer" }}
+               />
+           </ProfileLink>
+
           <textarea
             className="form-control border-0"
             rows="2"

@@ -1,46 +1,15 @@
+import { useParams } from "react-router-dom";
+import StudentProfile from "./StudentProfile";
+import { students as studentData } from "../mainPage/studentData";
 
-import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import StudentProfile from "./StudentProfile.jsx";
-import ProfessorProfile from "./ProfessorProfile.jsx";
-import { findStudentById } from "../mainPage/studentData.js";
-import universities from "../Dashboard/data.js";
-
-function findProfessorById(id) {
-  const strId = String(id);
-  for (const uni of universities) {
-    for (const dept of uni.departments || []) {
-      for (const prof of dept.professors || []) {
-        if (String(prof.id) === strId) {
-          return {
-            id: prof.id,
-            name: `${prof.name} ${prof.surname || ""}`.trim(),
-            department: dept.name,
-            profileImage: "",
-            isProfessor: true,
-          };
-        }
-      }
-    }
-  }
-  return null;
-}
-
-export default function ProfileRouter() {
+function ProfileRouter() {
   const { id } = useParams();
-  const navigate = useNavigate();
 
-  if (!id) {
-    navigate("/main-page");
-    return null;
-  }
+  const selectedStudent = studentData.find(
+    (s) => s.id.toString() === id.toString()
+  );
 
-  const student = findStudentById(id);
-  if (student) return <StudentProfile />;
-
-  const professor = findProfessorById(id);
-  if (professor) return <ProfessorProfile />;
-
-  navigate("/main-page");
-  return null;
+  return <StudentProfile student={selectedStudent} />;
 }
+
+export default ProfileRouter;

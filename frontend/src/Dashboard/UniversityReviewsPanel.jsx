@@ -10,6 +10,11 @@ import {
   deleteReview as apiDeleteReview,
 } from "../services/api.js";
 
+// UniversityReviewsPanel
+// - Displays a list of universities with buttons to view/add/edit reviews.
+// - Loads persisted `campusMediaState.data` and merges defaults so newly
+//   added universities remain visible even when older persisted snapshots exist.
+// - Delegates review editing to `ReviewModal` and centralizes persistence.
 export default function UniversityReviewsPanel() {
   const [data, setData] = useState(universitiesDefault);
   const [currentUser, setCurrentUser] = useState(null);
@@ -49,8 +54,14 @@ export default function UniversityReviewsPanel() {
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
+<<<<<<< HEAD
     };
     fetchData();
+=======
+    } catch {
+      /* ignore parse errors */
+    }
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
   }, []);
 
   useEffect(() => {
@@ -77,25 +88,13 @@ export default function UniversityReviewsPanel() {
     String(s)
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "");
+  // Simple normalized string comparison for university matching.
+  // Aliases are intentionally ignored here per request.
   const sameUniversity = (a, b) => {
     if (!a || !b) return false;
     const na = normalize(a);
     const nb = normalize(b);
-    if (na === nb) return true;
-    const findCanonicalId = (nameNorm) => {
-      if (!data || !Array.isArray(data)) return null;
-      for (const uni of data) {
-        const candidates = [uni.name, ...(uni.aliases || [])];
-        for (const c of candidates) {
-          if (normalize(c) === nameNorm) return uni.id;
-        }
-      }
-      return null;
-    };
-    const caId = findCanonicalId(na);
-    const cbId = findCanonicalId(nb);
-    if (caId && cbId) return caId === cbId;
-    return na.includes(nb) || nb.includes(na);
+    return na === nb || na.includes(nb) || nb.includes(na);
   };
 
   const getDisplayUniRating = (uni) => {
@@ -113,7 +112,23 @@ export default function UniversityReviewsPanel() {
       window.dispatchEvent(
         new CustomEvent("cm:reviews-updated", { detail: newReviews }),
       );
+<<<<<<< HEAD
     } catch {}
+=======
+      state.data = data;
+      state.reviews = newReviews;
+      localStorage.setItem("campusMediaState", JSON.stringify(state));
+      try {
+        window.dispatchEvent(
+          new CustomEvent("cm:reviews-updated", { detail: newReviews })
+        );
+      } catch {
+        /* ignore event dispatch errors */
+      }
+    } catch (e) {
+      console.error(e);
+    }
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
   };
 
   const openReview = (type, id, name, currentRating) => {

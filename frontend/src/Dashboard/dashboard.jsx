@@ -1,3 +1,9 @@
+// Dashboard: parent container for university insights pages.
+// Responsibilities:
+// - Load the current user (from localStorage or router state)
+// - Render high-level panels and pass data/handlers to child components
+// The heavy logic (reviews, filtering, matching) lives inside the child
+// components so this file stays focused on layout and orchestration.
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { useLocation } from "react-router-dom";
@@ -17,7 +23,13 @@ function Dashboard() {
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState(null);
 
+  // On mount, attempt to load the currently signed-in user. We check
+  // `localStorage.currentUser` first (normal login flow) and fall back to
+  // `location.state.user` which may be provided when navigating as a guest.
+  // Keeping this at the dashboard level allows child panels to receive
+  // `currentUser` via props in future changes (or to read from storage).
   useEffect(() => {
+<<<<<<< HEAD
     const fetchUser = async () => {
       // Check router state for guest user first
       if (location.state?.user) {
@@ -43,9 +55,20 @@ function Dashboard() {
       }
     };
     fetchUser();
+=======
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    if (user) {
+      setCurrentUser(user);
+    } else if (location.state?.user) {
+      setCurrentUser(location.state.user);
+    }
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
   }, [location.state]);
 
-  // No dashboard-level data/filters needed anymore. Child components are self-contained.
+  // Note: most data handling (reviews, filtering, etc.) is implemented inside
+  // the child components (UniversityReviewsPanel, PedagogueReviewsPanel,
+  // MatchingPrograms). This keeps the dashboard file concise and focused on
+  // layout and user-loading.
 
   if (!currentUser) return <p>Loading...</p>;
 
@@ -54,12 +77,16 @@ function Dashboard() {
   // const isStudent = userRole === "student"; // no longer used at this level
   // No review helpers or filters required at this level anymore.
 
+  // Render layout: left column contains ranking tables; right column shows
+  // charts and program-matching. Below that we render review panels for
+  // universities and pedagogues. Child components encapsulate their own
+  // state and interactions for clarity and testability.
   return (
     <>
       {!isGuest && <NavBar currentUser={currentUser} />}
 
       <Container className="dashboard-container mt-4">
-        <GuestBanner />
+        {isGuest && <GuestBanner />}
         <Row className="align-items-center mb-3">
           <Col>
             <h1 className="dashboard-title">University Insights</h1>
@@ -74,9 +101,7 @@ function Dashboard() {
           <Col lg={4}>
             <Card className="shadow-sm">
               <Card.Body>
-                <Card.Title className="mb-2">
-                  Top Ranked Universities
-                </Card.Title>
+                <Card.Title className="mb-2">Top Ranked Universities</Card.Title>
                 <UniversityTable />
               </Card.Body>
             </Card>

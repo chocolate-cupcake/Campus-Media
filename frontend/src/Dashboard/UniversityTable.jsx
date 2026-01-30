@@ -3,6 +3,10 @@ import universities from "./data.js";
 import { Table } from "react-bootstrap";
 import { getReviews } from "../services/api.js";
 
+// UniversityTable
+// - Small ranking table that shows top universities by adjusted rating.
+// - Reads review snapshots and listens for `cm:reviews-updated` events to
+//   update displayed averages without requiring a full page reload.
 function UniversityTable() {
   const [reviews, setReviews] = useState([]);
 
@@ -16,6 +20,7 @@ function UniversityTable() {
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
       }
+<<<<<<< HEAD
     };
     fetchReviews();
 
@@ -24,6 +29,25 @@ function UniversityTable() {
       const next = Array.isArray(e?.detail) ? e.detail : null;
       if (next) setReviews(next);
       else fetchReviews();
+=======
+    } catch {
+      /* ignore parse errors */
+    }
+    const handler = (e) => {
+      const next = Array.isArray(e?.detail) ? e.detail : null;
+      if (next) setReviews(next);
+      else {
+        try {
+          const raw = localStorage.getItem("campusMediaState");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
+          }
+        } catch {
+          /* ignore parse errors */
+        }
+      }
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     };
     window.addEventListener("cm:reviews-updated", handler);
     return () => window.removeEventListener("cm:reviews-updated", handler);

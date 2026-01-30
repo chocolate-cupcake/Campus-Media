@@ -2,19 +2,26 @@ import React, { useMemo, useState } from "react";
 import { Card, Badge } from "react-bootstrap";
 import universities from "./data.js";
 
+// Shows programs across universities filtered by program "type" (e.g. "Full-time").
+// - Derives the list of available program types from the dataset.
+// - Filters programs by the currently selected type and renders matching results.
 export default function MatchingPrograms() {
   const [selectedType, setSelectedType] = useState("All");
 
+  // Compute available program types once (memoized) to avoid recalculating
+  // on every render. Returns array like ["All", "Full-time", "Part-time"].
   const availableTypes = useMemo(() => {
     const typesSet = new Set();
     (universities || []).forEach((uni) => {
       (uni.departments || []).forEach((dept) => {
         (dept.programs || []).forEach((prog) => {
-          const progTypes = Array.isArray(prog.type)
-            ? prog.type
-            : prog.type
-            ? [prog.type]
-            : [];
+         let progTypes = [];
+
+           if (Array.isArray(prog.type)) {
+           progTypes = prog.type;
+           } else if (prog.type) {
+            progTypes = [prog.type];
+           }
           progTypes.forEach((t) => {
             if (t && t !== "All") typesSet.add(t);
           });
@@ -24,7 +31,9 @@ export default function MatchingPrograms() {
     const arr = Array.from(typesSet).sort();
     return ["All", ...arr];
   }, []);
-
+  // Build the list of universities -> departments -> programs that match the
+  // currently selected `selectedType`. This is memoized and depends on
+  // `selectedType` so it recalculates only when the filter changes.
   const selectedValues = useMemo(() => {
     return (universities || [])
       .map((uni) => {

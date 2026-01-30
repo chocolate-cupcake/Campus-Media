@@ -23,6 +23,10 @@ ChartJS.register(
 import universities from "./data.js";
 import { getReviews } from "../services/api.js";
 
+// UniversityChartByDep
+// - Renders a bar chart of universities' average ratings per study area.
+// - Subscribes to review updates from `localStorage` / `cm:reviews-updated` and
+//   recalculates adjusted ratings to reflect user reviews.
 function UniversityChartByDep() {
   const [selectedType, setSelectedType] = useState("All");
   const [reviews, setReviews] = useState([]);
@@ -37,6 +41,7 @@ function UniversityChartByDep() {
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
       }
+<<<<<<< HEAD
     };
     fetchReviews();
 
@@ -45,6 +50,25 @@ function UniversityChartByDep() {
       const next = Array.isArray(e?.detail) ? e.detail : null;
       if (next) setReviews(next);
       else fetchReviews();
+=======
+    } catch {
+      /* ignore parse errors */
+    }
+    const handler = (e) => {
+      const next = Array.isArray(e?.detail) ? e.detail : null;
+      if (next) setReviews(next);
+      else {
+        try {
+          const raw = localStorage.getItem("campusMediaState");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
+          }
+        } catch {
+          /* ignore parse errors */
+        }
+      }
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     };
     window.addEventListener("cm:reviews-updated", handler);
     return () => window.removeEventListener("cm:reviews-updated", handler);

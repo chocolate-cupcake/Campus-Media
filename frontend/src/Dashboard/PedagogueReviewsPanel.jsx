@@ -11,13 +11,22 @@ import {
   deleteReview as apiDeleteReview,
 } from "../services/api.js";
 
+// PedagogueReviewsPanel
+// - Lists pedagogues across universities and provides searching, filtering
+//   and matching functionality for students.
+// - Manages review state (load/save) and opens `ReviewModal` for create/edit.
 export default function PedagogueReviewsPanel() {
+  // Component state
+  // - `currentUser`: currently signed-in user (from localStorage)
+  // - `searchProf`, `studentUniversity`, `studentCourses`: UI filters
+  // - `matchedProfessors`: results from course-based matching
+  // - `reviews`: persisted reviews loaded from `campusMediaState`
+  // - `reviewedProfessors`, `userReviewedProfessors`: sets derived from `reviews`
   const [currentUser, setCurrentUser] = useState(null);
   const [searchProf, setSearchProf] = useState("");
   const [studentUniversity, setStudentUniversity] = useState("Any");
   const [studentCourses, setStudentCourses] = useState("");
   const [matchedProfessors, setMatchedProfessors] = useState([]);
-
   const [reviews, setReviews] = useState([]);
   const [reviewedProfessors, setReviewedProfessors] = useState(new Set());
   const [userReviewedProfessors, setUserReviewedProfessors] = useState(
@@ -30,6 +39,7 @@ export default function PedagogueReviewsPanel() {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewId, setReviewId] = useState(null);
 
+  // On mount: load current user and persisted reviews from localStorage
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,6 +68,8 @@ export default function PedagogueReviewsPanel() {
     fetchData();
   }, []);
 
+  // Maintain sets for quick lookup: which pedagogues have any reviews and
+  // which ones were reviewed by the current user
   useEffect(() => {
     const profSet = new Set();
     const userSet = new Set();
@@ -76,6 +88,9 @@ export default function PedagogueReviewsPanel() {
   }, [reviews, currentUser]);
 
   const allProfessors = useMemo(() => {
+    // Flatten professors across all universities into a single list used by
+    // the panel and the table component. Each professor carries their
+    // university and department for filtering and display.
     const list = [];
     (universities || []).forEach((uni) => {
       (uni.departments || []).forEach((dept) => {
@@ -91,31 +106,14 @@ export default function PedagogueReviewsPanel() {
     () => ["Any", ...(universities || []).map((u) => u.name)],
     [],
   );
+  const normalize = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  const normalize = (s) =>
-    String(s)
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, "");
+  // Compare university names using normalized strings only .
   const sameUniversity = useCallback((a, b) => {
     if (!a || !b) return false;
     const na = normalize(a);
     const nb = normalize(b);
-    if (na === nb) return true;
-    const findCanonicalId = (nameNorm) => {
-      if (!universities || !Array.isArray(universities)) return null;
-      for (const uni of universities) {
-        const candidates = [uni.name, ...(uni.aliases || [])];
-        for (const c of candidates) {
-          if (normalize(c) === nameNorm) return uni.id;
-        }
-      }
-      return null;
-    };
-    const caId = findCanonicalId(na);
-    const cbId = findCanonicalId(nb);
-    if (caId && cbId) return caId === cbId;
-    return na.includes(nb) || nb.includes(na);
-  }, []);
+    return na === nb  }, []);
 
   const filteredProfessors = useMemo(() => {
     const term = searchProf.trim().toLowerCase();
@@ -132,6 +130,9 @@ export default function PedagogueReviewsPanel() {
 
   const getDisplayProfRating = useCallback(
     (prof) => {
+      // Compute an adjusted rating by combining base `prof.rating` with any
+      // persisted reviews for that professor. This keeps base data while
+      // reflecting user feedback.
       const revs = reviews.filter(
         (r) => r.targetType === "prof" && r.targetId === prof.id,
       );
@@ -144,6 +145,9 @@ export default function PedagogueReviewsPanel() {
   );
 
   const findMatchesForStudent = () => {
+    // Find professors that match the comma-separated course terms provided by
+    // the student. This is a simple fuzzy match against the professor's
+    // `courses` list and can be used to find relevant pedagogues.
     const terms = studentCourses
       .split(",")
       .map((s) => s.trim().toLowerCase())
@@ -161,7 +165,12 @@ export default function PedagogueReviewsPanel() {
     setMatchedProfessors(matches);
   };
 
+<<<<<<< HEAD
   const notifyReviewsUpdated = (newReviews) => {
+=======
+  const persistState = (newReviews) => {
+    
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     try {
       window.dispatchEvent(
         new CustomEvent("cm:reviews-updated", { detail: newReviews }),
@@ -173,6 +182,8 @@ export default function PedagogueReviewsPanel() {
     !!currentUser && (currentUser.role || "student") === "student";
 
   const openReview = (type, id, name, currentRating) => {
+    // Prepare the modal for editing or creating a review for the selected
+    // target. If an existing review is found we pre-fill the fields.
     const existing = reviews.find(
       (r) => r.targetType === type && r.targetId === id,
     );
@@ -190,6 +201,7 @@ export default function PedagogueReviewsPanel() {
   };
 
   const closeReview = () => {
+    // Reset modal state
     setReviewModalOpen(false);
     setReviewTarget(null);
     setReviewScore(5);
@@ -197,7 +209,13 @@ export default function PedagogueReviewsPanel() {
     setReviewId(null);
   };
 
+<<<<<<< HEAD
   const submitReview = async () => {
+=======
+  const submitReview = () => {
+    // Validate and submit the review. Only students are allowed to submit
+    // reviews and students may only review pedagogues from their university.
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     if (!reviewTarget) return;
     if (!isStudent) return;
     if (reviewTarget.type === "prof") {
@@ -249,7 +267,12 @@ export default function PedagogueReviewsPanel() {
     closeReview();
   };
 
+<<<<<<< HEAD
   const deleteMyReview = async (targetType, targetId) => {
+=======
+  const deleteMyReview = (targetType, targetId) => {
+    // Allow current user to delete their own review for the specified target
+>>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     if (!currentUser) return;
     const review = reviews.find(
       (r) =>
@@ -270,6 +293,10 @@ export default function PedagogueReviewsPanel() {
     }
   };
   const professorsList = useMemo(() => {
+    // Build the final list shown to the table: either matchedProfessors (if
+    // the student provided courses) or the filteredProfessors from the
+    // search box. Additionally filter by selected university and attach
+    // the adjusted rating.
     const base = (
       studentCourses.trim() ? matchedProfessors : filteredProfessors
     )

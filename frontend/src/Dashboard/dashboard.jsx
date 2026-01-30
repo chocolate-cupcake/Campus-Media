@@ -29,7 +29,6 @@ function Dashboard() {
   // Keeping this at the dashboard level allows child panels to receive
   // `currentUser` via props in future changes (or to read from storage).
   useEffect(() => {
-<<<<<<< HEAD
     const fetchUser = async () => {
       // Check router state for guest user first
       if (location.state?.user) {
@@ -55,14 +54,6 @@ function Dashboard() {
       }
     };
     fetchUser();
-=======
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) {
-      setCurrentUser(user);
-    } else if (location.state?.user) {
-      setCurrentUser(location.state.user);
-    }
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
   }, [location.state]);
 
   // Note: most data handling (reviews, filtering, etc.) is implemented inside
@@ -101,7 +92,9 @@ function Dashboard() {
           <Col lg={4}>
             <Card className="shadow-sm">
               <Card.Body>
-                <Card.Title className="mb-2">Top Ranked Universities</Card.Title>
+                <Card.Title className="mb-2">
+                  Top Ranked Universities
+                </Card.Title>
                 <UniversityTable />
               </Card.Body>
             </Card>

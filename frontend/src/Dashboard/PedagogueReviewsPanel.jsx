@@ -106,14 +106,18 @@ export default function PedagogueReviewsPanel() {
     () => ["Any", ...(universities || []).map((u) => u.name)],
     [],
   );
-  const normalize = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normalize = (s) =>
+    String(s)
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
 
   // Compare university names using normalized strings only .
   const sameUniversity = useCallback((a, b) => {
     if (!a || !b) return false;
     const na = normalize(a);
     const nb = normalize(b);
-    return na === nb  }, []);
+    return na === nb;
+  }, []);
 
   const filteredProfessors = useMemo(() => {
     const term = searchProf.trim().toLowerCase();
@@ -165,12 +169,7 @@ export default function PedagogueReviewsPanel() {
     setMatchedProfessors(matches);
   };
 
-<<<<<<< HEAD
   const notifyReviewsUpdated = (newReviews) => {
-=======
-  const persistState = (newReviews) => {
-    
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     try {
       window.dispatchEvent(
         new CustomEvent("cm:reviews-updated", { detail: newReviews }),
@@ -209,13 +208,9 @@ export default function PedagogueReviewsPanel() {
     setReviewId(null);
   };
 
-<<<<<<< HEAD
   const submitReview = async () => {
-=======
-  const submitReview = () => {
     // Validate and submit the review. Only students are allowed to submit
     // reviews and students may only review pedagogues from their university.
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     if (!reviewTarget) return;
     if (!isStudent) return;
     if (reviewTarget.type === "prof") {
@@ -267,12 +262,8 @@ export default function PedagogueReviewsPanel() {
     closeReview();
   };
 
-<<<<<<< HEAD
   const deleteMyReview = async (targetType, targetId) => {
-=======
-  const deleteMyReview = (targetType, targetId) => {
     // Allow current user to delete their own review for the specified target
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     if (!currentUser) return;
     const review = reviews.find(
       (r) =>

@@ -2,54 +2,68 @@ import { useState, useEffect } from "react";
 import FeedContainer from "./feedContainer.jsx";
 import StorieSection from "./StoriesSection";
 import AddPostSection from "./addPostSection.jsx";
-import { getStudents } from "./studentData.js";
+import { getCurrentUser, getFeedPosts, getFriends } from "../services/api.js";
 
 function MainPageContainer() {
   const [currentUser, setCurrentUser] = useState(null);
-  const students = getStudents();
+  const [friends, setFriends] = useState([]);
+  const [feedPosts, setFeedPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) setCurrentUser(user);
-  }, []);
+    const fetchData = async () => {
+      try {
+        // Try session storage first
+        const cached = sessionStorage.getItem("currentUser");
+        if (cached) {
+          setCurrentUser(JSON.parse(cached));
+        }
 
-  // Keep students in sync if another part of the app updates the students storage
-  useEffect(() => {
-    const onStorage = (e) => {
-      if (!e) return;
-      if (e.key === 'campus_media_students_v1') {
-        // re-read students and ensure friends and posts reflect the update
-        // we don't set currentUser here, just ensure child components that call getStudents will get fresh data
+        // Fetch current user and feed data
+        const [user, postsData, friendsData] = await Promise.all([
+          getCurrentUser(),
+          getFeedPosts(),
+          getFriends(),
+        ]);
+
+        if (user) {
+          setCurrentUser(user);
+          sessionStorage.setItem("currentUser", JSON.stringify(user));
+        }
+
+        if (postsData) setFeedPosts(postsData);
+        if (friendsData) setFriends(friendsData);
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    fetchData();
   }, []);
 
-  if (!currentUser) return <p>Loading...</p>;
+  if (loading || !currentUser) return <p>Loading...</p>;
 
-  // Get only friends
-  const friends = students.filter((student) =>
-    currentUser.friends.includes(student.id)
-  );
-
-  // Combine all friend posts + user’s own posts
-  const friendPosts = [
-    ...friends.flatMap((friend) =>
-      friend.posts.map((post) => ({
-        ...post,
-        posterName: friend.name,
-        posterImage: friend.profileImage,
-        posterId: friend.id,
-      }))
-    ),
-    ...currentUser.posts.map((post) => ({
-      ...post,
-      posterName: currentUser.name,
-      posterImage: currentUser.profileImage,
-      posterId: currentUser.id,
-    })),
-  ].sort((a, b) => new Date(b.date) - new Date(a.date));
+  // Use feedPosts from API, or combine from local data if needed
+  const allPosts =
+    feedPosts.length > 0
+      ? feedPosts
+      : [
+          ...friends.flatMap((friend) =>
+            (friend.posts || []).map((post) => ({
+              ...post,
+              posterName: friend.name,
+              posterImage: friend.profileImage,
+              posterId: friend.id,
+            })),
+          ),
+          ...(currentUser.posts || []).map((post) => ({
+            ...post,
+            posterName: currentUser.name,
+            posterImage: currentUser.profileImage,
+            posterId: currentUser.id,
+          })),
+        ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
     <div className="container-fluid p-0">
@@ -65,7 +79,7 @@ function MainPageContainer() {
             setCurrentUser={setCurrentUser}
           />
           <FeedContainer
-            posts={friendPosts}
+            posts={allPosts}
             currentUser={currentUser}
             setCurrentUser={setCurrentUser}
           />

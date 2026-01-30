@@ -1,32 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { students } from "./studentData.js";
+import { globalSearch } from "../services/api.js";
 import SearchResultsModal from "./searchResultsModal.jsx";
 
 function SearchBar() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
 
-    const regex = new RegExp(`\\b${query.trim()}\\b`, "i"); // word boundary, case-insensitive
-    const filtered = students.filter(
-      (s) =>
-        regex.test(s.name) ||
-        regex.test(s.university) ||
-        regex.test(s.department)
-    );
-
-    setResults(filtered);
-    setShowModal(true);
+    setLoading(true);
+    try {
+      const searchResults = await globalSearch(query.trim());
+      // Handle the search results - assuming API returns { users, universities, programs }
+      const filtered = searchResults.users || searchResults || [];
+      setResults(filtered);
+      setShowModal(true);
+    } catch (error) {
+      console.error("Search failed:", error);
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClickProfile = (id) => {
@@ -57,6 +61,7 @@ function SearchBar() {
           <Col xs="auto">
             <Button
               type="submit"
+              disabled={loading}
               style={{
                 backgroundColor: "rgba(255, 255, 255, 0.2)",
                 border: "2px solid rgba(255, 255, 255, 0.3)",
@@ -66,7 +71,7 @@ function SearchBar() {
                 padding: "6px 15px",
               }}
             >
-              Search
+              {loading ? "..." : "Search"}
             </Button>
           </Col>
         </Row>

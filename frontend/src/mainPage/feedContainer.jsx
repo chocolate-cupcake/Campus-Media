@@ -2,9 +2,9 @@ import { useState } from "react";
 import notLikedIcon from "../assets/notLikedIcon.png";
 import likedIcon from "../assets/likedIcon.png";
 import commentIcon from "../assets/commentIcon.png";
-import trashIcon from "../assets/trashIcon.png"; 
-import { updateStudent } from "./studentData.js";
-import ProfileLink from "../profile/ProfileLink.jsx"; 
+import trashIcon from "../assets/trashIcon.png";
+import { deletePost as apiDeletePost } from "../services/api.js";
+import ProfileLink from "../profile/ProfileLink.jsx";
 
 function FeedContainer({ posts, currentUser, setCurrentUser }) {
   const [likedPosts, setLikedPosts] = useState({});
@@ -16,18 +16,24 @@ function FeedContainer({ posts, currentUser, setCurrentUser }) {
     }));
   };
 
-  const handleDeletePost = (postId) => {
+  const handleDeletePost = async (postId) => {
     if (!currentUser) return;
 
     if (!window.confirm("Are you sure you want to delete this post?")) return;
 
-    const updatedPosts = currentUser.posts.filter((p) => p.id !== postId);
-    const updatedUser = { ...currentUser, posts: updatedPosts };
+    try {
+      await apiDeletePost(postId);
 
-    // Update everywhere
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-    updateStudent(currentUser.id, updatedUser);
-    setCurrentUser(updatedUser);
+      const updatedPosts = currentUser.posts.filter((p) => p.id !== postId);
+      const updatedUser = { ...currentUser, posts: updatedPosts };
+
+      // Update session storage and state
+      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+    } catch (error) {
+      console.error("Failed to delete post:", error);
+      alert("Failed to delete post. Please try again.");
+    }
   };
 
   return (
@@ -42,13 +48,18 @@ function FeedContainer({ posts, currentUser, setCurrentUser }) {
           <div className="card-header bg-white border-0 d-flex justify-content-between align-items-center py-2">
             <div className="d-flex align-items-center gap-2">
               <ProfileLink userId={post.posterId}>
-                    <img
-                      src={post.posterImage}
-                      alt={post.posterName}
-                     className="rounded-circle"
-                     style={{ width: "40px", height: "40px", objectFit: "cover", cursor: "pointer" }}
-                    />
-               </ProfileLink>
+                <img
+                  src={post.posterImage}
+                  alt={post.posterName}
+                  className="rounded-circle"
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    objectFit: "cover",
+                    cursor: "pointer",
+                  }}
+                />
+              </ProfileLink>
 
               <div>
                 <span className="fw-semibold d-block">{post.posterName}</span>
@@ -116,9 +127,7 @@ function FeedContainer({ posts, currentUser, setCurrentUser }) {
             </p>
 
             {/* Caption */}
-            {post.caption && (
-              <p className="card-text mb-0">{post.caption}</p>
-            )}
+            {post.caption && <p className="card-text mb-0">{post.caption}</p>}
           </div>
         </div>
       ))}

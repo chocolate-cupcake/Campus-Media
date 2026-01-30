@@ -11,20 +11,38 @@ import GuestBanner from "./GuestBanner.jsx";
 import MatchingPrograms from "./MatchingPrograms.jsx";
 import UniversityReviewsPanel from "./UniversityReviewsPanel.jsx";
 import PedagogueReviewsPanel from "./PedagogueReviewsPanel.jsx";
+import { getCurrentUser } from "../services/api.js";
 
 function Dashboard() {
   const location = useLocation();
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    // Check localStorage first (for logged-in users)
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) {
-      setCurrentUser(user);
-    } else if (location.state?.user) {
-      // Check router state for guest user
-      setCurrentUser(location.state.user);
-    }
+    const fetchUser = async () => {
+      // Check router state for guest user first
+      if (location.state?.user) {
+        setCurrentUser(location.state.user);
+        return;
+      }
+
+      // Try session storage for cached user
+      const cached = sessionStorage.getItem("currentUser");
+      if (cached) {
+        setCurrentUser(JSON.parse(cached));
+      }
+
+      // Verify with API
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          sessionStorage.setItem("currentUser", JSON.stringify(user));
+        }
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+    fetchUser();
   }, [location.state]);
 
   // No dashboard-level data/filters needed anymore. Child components are self-contained.

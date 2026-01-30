@@ -2,6 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Card, Button } from "react-bootstrap";
 import universitiesDefault from "./data.js";
 import ReviewModal from "./ReviewModal.jsx";
+import {
+  getCurrentUser,
+  getReviews,
+  createReview,
+  updateReview,
+  deleteReview as apiDeleteReview,
+} from "../services/api.js";
 
 export default function UniversityReviewsPanel() {
   const [data, setData] = useState(universitiesDefault);
@@ -9,7 +16,7 @@ export default function UniversityReviewsPanel() {
   const [reviews, setReviews] = useState([]);
   const [reviewedUniversities, setReviewedUniversities] = useState(new Set());
   const [userReviewedUniversities, setUserReviewedUniversities] = useState(
-    new Set()
+    new Set(),
   );
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -19,38 +26,31 @@ export default function UniversityReviewsPanel() {
   const [reviewId, setReviewId] = useState(null);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) setCurrentUser(user);
-  }, []);
+    const fetchData = async () => {
+      try {
+        // Try session storage first
+        const cached = sessionStorage.getItem("currentUser");
+        if (cached) {
+          setCurrentUser(JSON.parse(cached));
+        }
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("campusMediaState");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed.data) {
-          try {
-            const parsedData = Array.isArray(parsed.data)
-              ? parsed.data.slice()
-              : [];
-            const existingIds = new Set(
-              parsedData.map((u) => u && u.id).filter(Boolean)
-            );
-            (universitiesDefault || []).forEach((defUni) => {
-              if (!existingIds.has(defUni.id)) parsedData.push(defUni);
-            });
-            setData(parsedData);
-          } catch {
-            setData(parsed.data);
-          }
+        const [user, reviewsData] = await Promise.all([
+          getCurrentUser(),
+          getReviews(),
+        ]);
+
+        if (user) {
+          setCurrentUser(user);
+          sessionStorage.setItem("currentUser", JSON.stringify(user));
         }
-        if (Array.isArray(parsed.reviews)) {
-          setReviews(parsed.reviews);
+        if (Array.isArray(reviewsData)) {
+          setReviews(reviewsData);
         }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
       }
-    } catch (e) {
-      void 0;
-    }
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function UniversityReviewsPanel() {
 
   const getDisplayUniRating = (uni) => {
     const revs = reviews.filter(
-      (r) => r.targetType === "uni" && r.targetId === uni.id
+      (r) => r.targetType === "uni" && r.targetId === uni.id,
     );
     if (!revs.length) return uni.rating;
     const sum = revs.reduce((s, r) => s + (r.score || 0), 0);
@@ -108,27 +108,17 @@ export default function UniversityReviewsPanel() {
     return Number(avg.toFixed(2));
   };
 
-  const persistState = (newReviews) => {
+  const notifyReviewsUpdated = (newReviews) => {
     try {
-      const state = JSON.parse(
-        localStorage.getItem("campusMediaState") || "{}"
+      window.dispatchEvent(
+        new CustomEvent("cm:reviews-updated", { detail: newReviews }),
       );
-      state.data = data;
-      state.reviews = newReviews;
-      localStorage.setItem("campusMediaState", JSON.stringify(state));
-      try {
-        window.dispatchEvent(
-          new CustomEvent("cm:reviews-updated", { detail: newReviews })
-        );
-      } catch {}
-    } catch (e) {
-      console.error(e);
-    }
+    } catch {}
   };
 
   const openReview = (type, id, name, currentRating) => {
     const existing = reviews.find(
-      (r) => r.targetType === type && r.targetId === id
+      (r) => r.targetType === type && r.targetId === id,
     );
     if (existing) {
       setReviewId(existing.id);
@@ -151,7 +141,7 @@ export default function UniversityReviewsPanel() {
     setReviewId(null);
   };
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (!reviewTarget) return;
     if (!isStudent) return;
     if (
@@ -161,50 +151,68 @@ export default function UniversityReviewsPanel() {
       return;
 
     const { type, id } = reviewTarget;
-    const newReviews = [...reviews];
-    if (reviewId) {
-      const idx = newReviews.findIndex((r) => r.id === reviewId);
-      if (idx !== -1) {
-        const existing = newReviews[idx];
-        if (String(existing.reviewerId) !== String(currentUser.id)) return;
-        newReviews[idx] = {
-          ...existing,
+
+    try {
+      if (reviewId) {
+        // Update existing review
+        await updateReview(reviewId, {
           score: Number(reviewScore),
           comment: reviewComment,
-          reviewerId: existing.reviewerId || null,
-          date: new Date().toISOString(),
+        });
+
+        const newReviews = reviews.map((r) =>
+          r.id === reviewId
+            ? {
+                ...r,
+                score: Number(reviewScore),
+                comment: reviewComment,
+                date: new Date().toISOString(),
+              }
+            : r,
+        );
+        setReviews(newReviews);
+        notifyReviewsUpdated(newReviews);
+      } else {
+        // Create new review
+        const reviewData = {
+          targetType: type,
+          targetId: id,
+          score: Number(reviewScore),
+          comment: reviewComment,
         };
+
+        const newReview = await createReview(reviewData);
+        const newReviews = [...reviews, newReview];
+        setReviews(newReviews);
+        notifyReviewsUpdated(newReviews);
       }
-    } else {
-      const rid = Date.now().toString();
-      const reviewerToStore = isStudent ? String(currentUser.id) : null;
-      newReviews.push({
-        id: rid,
-        targetType: type,
-        targetId: id,
-        score: Number(reviewScore),
-        comment: reviewComment,
-        reviewerId: reviewerToStore,
-        date: new Date().toISOString(),
-      });
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      alert("Failed to submit review. Please try again.");
     }
-    setReviews(newReviews);
-    persistState(newReviews);
+
     closeReview();
   };
 
-  const deleteMyReview = (targetType, targetId) => {
+  const deleteMyReview = async (targetType, targetId) => {
     if (!currentUser) return;
-    const idx = reviews.findIndex(
+    const review = reviews.find(
       (r) =>
         r.targetType === targetType &&
         r.targetId === targetId &&
-        String(r.reviewerId) === String(currentUser.id)
+        String(r.reviewerId) === String(currentUser.id),
     );
-    if (idx === -1) return;
-    const newReviews = [...reviews.slice(0, idx), ...reviews.slice(idx + 1)];
-    setReviews(newReviews);
-    persistState(newReviews);
+    if (!review) return;
+
+    try {
+      await apiDeleteReview(review.id);
+      const newReviews = reviews.filter((r) => r.id !== review.id);
+      setReviews(newReviews);
+      notifyReviewsUpdated(newReviews);
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      alert("Failed to delete review. Please try again.");
+    }
   };
 
   return (
@@ -243,7 +251,7 @@ export default function UniversityReviewsPanel() {
                             "uni",
                             uni.id,
                             uni.name,
-                            getDisplayUniRating(uni)
+                            getDisplayUniRating(uni),
                           )
                         }
                       >
@@ -271,7 +279,7 @@ export default function UniversityReviewsPanel() {
                             "uni",
                             uni.id,
                             uni.name,
-                            getDisplayUniRating(uni)
+                            getDisplayUniRating(uni),
                           )
                         }
                       >
@@ -301,10 +309,15 @@ export default function UniversityReviewsPanel() {
         reviews={reviews}
         reviewId={reviewId}
         currentUser={currentUser}
-        deleteReviewById={(rid) => {
-          const newReviews = reviews.filter((r) => r.id !== rid);
-          setReviews(newReviews);
-          persistState(newReviews);
+        deleteReviewById={async (rid) => {
+          try {
+            await apiDeleteReview(rid);
+            const newReviews = reviews.filter((r) => r.id !== rid);
+            setReviews(newReviews);
+            notifyReviewsUpdated(newReviews);
+          } catch (error) {
+            console.error("Failed to delete review:", error);
+          }
         }}
         canUserReviewTarget={(tgt) => {
           if (!isStudent || !tgt || !currentUser) return false;

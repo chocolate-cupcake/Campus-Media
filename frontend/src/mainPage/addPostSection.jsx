@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { updateStudent } from "./studentData.js";
+import { createPost } from "../services/api.js";
 import { useNavigate } from "react-router-dom";
 import ProfileLink from "../profile/ProfileLink.jsx";
-
 
 // Import icons
 import { FaImage, FaSmile, FaMapMarkerAlt } from "react-icons/fa";
@@ -13,6 +12,7 @@ function AddPostSection({ currentUser, setCurrentUser }) {
   const [postText, setPostText] = useState("");
   const [postImage, setPostImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -31,31 +31,37 @@ function AddPostSection({ currentUser, setCurrentUser }) {
     setImagePreview(null);
   };
 
-  const handleAddPost = () => {
+  const handleAddPost = async () => {
     if (!postText.trim() && !postImage) return;
 
-    const newPostId =
-      Math.max(...currentUser.posts.map((p) => p.id), 0) + 1;
+    setLoading(true);
 
-    const newPost = {
-      id: newPostId,
-      image: postImage || "",
-      caption: postText,
-      date: new Date().toISOString().split("T")[0],
-    };
+    try {
+      const postData = {
+        image: postImage || "",
+        caption: postText,
+        date: new Date().toISOString().split("T")[0],
+      };
 
-    const updatedUser = {
-      ...currentUser,
-      posts: [...currentUser.posts, newPost],
-    };
+      const newPost = await createPost(postData);
 
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-    updateStudent(currentUser.id, updatedUser);
-    setCurrentUser(updatedUser);
+      const updatedUser = {
+        ...currentUser,
+        posts: [...currentUser.posts, newPost],
+      };
 
-    setPostText("");
-    setPostImage(null);
-    setImagePreview(null);
+      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+
+      setPostText("");
+      setPostImage(null);
+      setImagePreview(null);
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      alert("Failed to create post. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -70,13 +76,18 @@ function AddPostSection({ currentUser, setCurrentUser }) {
         <div className="d-flex align-items-start gap-2 mb-3">
           {/* ✅ Clickable profile picture */}
           <ProfileLink userId={currentUser?.id}>
-             <img
-                src={currentUser.profileImage}
-                alt={currentUser.name}
-                className="rounded-circle"
-                style={{ width: "45px", height: "45px", objectFit: "cover", cursor: "pointer" }}
-               />
-           </ProfileLink>
+            <img
+              src={currentUser.profileImage}
+              alt={currentUser.name}
+              className="rounded-circle"
+              style={{
+                width: "45px",
+                height: "45px",
+                objectFit: "cover",
+                cursor: "pointer",
+              }}
+            />
+          </ProfileLink>
 
           <textarea
             className="form-control border-0"
@@ -134,12 +145,19 @@ function AddPostSection({ currentUser, setCurrentUser }) {
               onChange={handleImageUpload}
             />
 
-            <span className="text-warning d-flex align-items-center gap-1" style={{ cursor: "pointer" }}>
+            <span
+              className="text-warning d-flex align-items-center gap-1"
+              style={{ cursor: "pointer" }}
+            >
               <FaSmile size={20} /> <span className="small">Feeling</span>
             </span>
 
-            <span className="text-danger d-flex align-items-center gap-1" style={{ cursor: "pointer" }}>
-              <FaMapMarkerAlt size={18} /> <span className="small">Location</span>
+            <span
+              className="text-danger d-flex align-items-center gap-1"
+              style={{ cursor: "pointer" }}
+            >
+              <FaMapMarkerAlt size={18} />{" "}
+              <span className="small">Location</span>
             </span>
           </div>
 

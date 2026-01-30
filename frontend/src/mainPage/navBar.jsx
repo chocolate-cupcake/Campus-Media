@@ -4,16 +4,23 @@ import ProfilePic from "../assets/profilePic.jpg";
 import chatLogo from "../assets/chatLogo.png";
 import SearchBar from "./searchBar.jsx";
 import { FaUsers } from "react-icons/fa";
-import ProfileLink from "../profile/ProfileLink.jsx"; 
+import ProfileLink from "../profile/ProfileLink.jsx";
+import { logout } from "../services/api.js";
 
 function NavBar({ onOpenSuggestions, currentUser }) {
   const navigate = useNavigate();
 
   // ✅ Handle sign out
-  const handleSignOut = () => {
-    localStorage.removeItem("currentUser");
-    navigate("/logIn");
-    window.location.reload(); // ensures clean state
+  const handleSignOut = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      sessionStorage.removeItem("currentUser");
+      navigate("/logIn");
+      window.location.reload(); // ensures clean state
+    }
   };
 
   // ✅ Display defaults if user not logged in
@@ -39,14 +46,13 @@ function NavBar({ onOpenSuggestions, currentUser }) {
         {/* Profile section */}
         <div className="me-3 d-flex flex-column align-items-center">
           <ProfileLink userId={currentUser?.id}>
-              <img
-                 src={displayImage}
-                 alt="Profile"
-                 className="rounded-circle"
-                 style={{ width: "40px", height: "40px" }}
-               />
-           </ProfileLink>
-
+            <img
+              src={displayImage}
+              alt="Profile"
+              className="rounded-circle"
+              style={{ width: "40px", height: "40px" }}
+            />
+          </ProfileLink>
 
           <span
             className="mt-1 text-center"

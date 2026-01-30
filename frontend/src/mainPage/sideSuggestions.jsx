@@ -8,68 +8,103 @@ import {
   Toast,
   Offcanvas,
 } from "react-bootstrap";
-import { getStudents, updateStudent } from "./studentData.js";
+import {
+  getSuggestions,
+  addFriend as apiAddFriend,
+  dismissSuggestion,
+  getCurrentUser,
+} from "../services/api.js";
 import { useNavigate, Navigate } from "react-router-dom";
 
 function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // Load current user from localStorage
+  // Load current user and suggestions from API
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) {
-      setCurrentUser(user);
-    }
+    const fetchData = async () => {
+      try {
+        // Try session storage first
+        const cached = sessionStorage.getItem("currentUser");
+        if (cached) {
+          setCurrentUser(JSON.parse(cached));
+        }
+
+        const [user, suggestionsData] = await Promise.all([
+          getCurrentUser(),
+          getSuggestions(),
+        ]);
+
+        if (user) {
+          setCurrentUser(user);
+          sessionStorage.setItem("currentUser", JSON.stringify(user));
+        }
+        if (suggestionsData) {
+          setSuggestions(suggestionsData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch suggestions:", error);
+      }
+    };
+    fetchData();
   }, []);
 
-  // Get real suggestions for this user
-  const students = getStudents();
-  const suggestions = currentUser
-    ? students.filter((student) => currentUser.suggestions.includes(student.id))
-    : [];
-
-  function handleAdd(suggestionId, suggestionName) {
+  async function handleAdd(suggestionId, suggestionName) {
     if (!currentUser) return;
 
-    // Add to friends and remove from suggestions
-    const updatedUser = {
-      ...currentUser,
-      friends: [...currentUser.friends, suggestionId],
-      suggestions: currentUser.suggestions.filter((id) => id !== suggestionId),
-    };
+    try {
+      await apiAddFriend(suggestionId);
 
-    // Update in localStorage
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-    // Update in student data
-    updateStudent(currentUser.id, updatedUser);
-    // Update local state
-    setCurrentUser(updatedUser);
+      // Update local state
+      setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
 
-    setToastMessage(`✅ You added ${suggestionName} as a friend`);
-    setShowToast(true);
+      const updatedUser = {
+        ...currentUser,
+        friends: [...currentUser.friends, suggestionId],
+        suggestions: currentUser.suggestions.filter(
+          (id) => id !== suggestionId,
+        ),
+      };
+
+      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+
+      setToastMessage(`✅ You added ${suggestionName} as a friend`);
+      setShowToast(true);
+    } catch (error) {
+      console.error("Failed to add friend:", error);
+      setToastMessage(`❌ Failed to add ${suggestionName}`);
+      setShowToast(true);
+    }
   }
 
-  function handleRemove(suggestionId, suggestionName) {
+  async function handleRemove(suggestionId, suggestionName) {
     if (!currentUser) return;
 
-    // Remove from suggestions
-    const updatedUser = {
-      ...currentUser,
-      suggestions: currentUser.suggestions.filter((id) => id !== suggestionId),
-    };
+    try {
+      await dismissSuggestion(suggestionId);
 
-    // Update in localStorage
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-    // Update in student data
-    updateStudent(currentUser.id, updatedUser);
-    // Update local state
-    setCurrentUser(updatedUser);
+      // Update local state
+      setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
 
-    setToastMessage(`❌ You removed ${suggestionName} from suggestions`);
-    setShowToast(true);
+      const updatedUser = {
+        ...currentUser,
+        suggestions: currentUser.suggestions.filter(
+          (id) => id !== suggestionId,
+        ),
+      };
+
+      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      setCurrentUser(updatedUser);
+
+      setToastMessage(`❌ You removed ${suggestionName} from suggestions`);
+      setShowToast(true);
+    } catch (error) {
+      console.error("Failed to remove suggestion:", error);
+    }
   }
 
   // Show loading until currentUser is ready

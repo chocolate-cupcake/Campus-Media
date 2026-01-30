@@ -1,44 +1,59 @@
 import { useState, useEffect } from "react";
-import { getStudents } from "./studentData.js";
+import {
+  getStories,
+  getCurrentUser,
+  markStoryViewed,
+} from "../services/api.js";
 
 function StorieSection() {
   const [viewedStories, setViewedStories] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [stories, setStories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) {
-      setCurrentUser(user);
-    }
+    const fetchData = async () => {
+      try {
+        // Try session storage first
+        const cached = sessionStorage.getItem("currentUser");
+        if (cached) {
+          setCurrentUser(JSON.parse(cached));
+        }
+
+        const [user, storiesData] = await Promise.all([
+          getCurrentUser(),
+          getStories(),
+        ]);
+
+        if (user) {
+          setCurrentUser(user);
+          sessionStorage.setItem("currentUser", JSON.stringify(user));
+        }
+        if (storiesData) {
+          setStories(storiesData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stories:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  // Don't load stories until currentUser is available
-  if (!currentUser) return <p>Loading...</p>;
+  // Don't load stories until data is available
+  if (loading || !currentUser) return <p>Loading...</p>;
 
-  const students = getStudents();
-
-  const friends = students.filter((s) => currentUser.friends?.includes(s.id));
-
-  const stories = [
-    ...(currentUser.stories || []).map((s) => ({
-      ...s,
-      username: currentUser.name,
-      id: s.id || `${currentUser.id}-${Math.random()}`,
-    })),
-    ...friends.flatMap((friend) =>
-      (friend.stories || []).map((s) => ({
-        ...s,
-        username: friend.name,
-        id: s.id || `${friend.id}-${Math.random()}`,
-      }))
-    ),
-  ];
-
-  const handleStoryClick = (index) => {
+  const handleStoryClick = async (index) => {
     const story = stories[index];
     if (!viewedStories.includes(story.id)) {
       setViewedStories((prev) => [...prev, story.id]);
+      try {
+        await markStoryViewed(story.id);
+      } catch (error) {
+        console.error("Failed to mark story as viewed:", error);
+      }
     }
     setActiveIndex(index);
   };

@@ -1,34 +1,29 @@
 import React, { useEffect, useMemo, useState } from "react";
 import universities from "./data.js";
 import { Table } from "react-bootstrap";
+import { getReviews } from "../services/api.js";
 
 function UniversityTable() {
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("campusMediaState");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
+    const fetchReviews = async () => {
+      try {
+        const reviewsData = await getReviews();
+        if (Array.isArray(reviewsData)) {
+          setReviews(reviewsData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
       }
-    } catch (e) {
-      void 0;
-    }
+    };
+    fetchReviews();
+
+    // Listen for review updates
     const handler = (e) => {
       const next = Array.isArray(e?.detail) ? e.detail : null;
       if (next) setReviews(next);
-      else {
-        try {
-          const raw = localStorage.getItem("campusMediaState");
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
-          }
-        } catch (e2) {
-          void 0;
-        }
-      }
+      else fetchReviews();
     };
     window.addEventListener("cm:reviews-updated", handler);
     return () => window.removeEventListener("cm:reviews-updated", handler);

@@ -8,7 +8,7 @@ export default function GuestBanner() {
     const hide = sessionStorage.getItem("hideGuestBanner") === "1";
     if (hide) return false;
     try {
-      const user = JSON.parse(localStorage.getItem("currentUser"));
+      const user = JSON.parse(sessionStorage.getItem("currentUser"));
       const role = user?.role || "student";
       return role === "guest";
     } catch {

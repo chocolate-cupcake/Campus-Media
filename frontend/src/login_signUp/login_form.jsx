@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Container, Form, Button, Alert, InputGroup } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { getStudents } from "../mainPage/studentData.js";
+import { login, getCurrentUser } from "../services/api.js";
 import guestImg from "../assets/guest.png";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 
@@ -11,28 +11,40 @@ function LoginForm({ switchToSignUp }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   //  Automatically redirect if user is already logged in (but not if they're a guest trying to sign up)
   useEffect(() => {
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser && !storedUser.includes("guest")) {
-      navigate("/main-page");
-    }
+    const checkAuth = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user && user.role !== "guest") {
+          navigate("/main-page");
+        }
+      } catch {
+        // Not logged in, stay on login page
+      }
+    };
+    checkAuth();
   }, [navigate]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const students = getStudents();
-    const user = students.find(
-      (s) => s.email === email && s.password === password
-    );
-
-    if (user) {
-      localStorage.setItem("currentUser", JSON.stringify(user));
-      navigate("/main-page");
-    } else {
-      setError("Invalid email or password");
+    try {
+      const response = await login(email, password);
+      if (response.user) {
+        sessionStorage.setItem("currentUser", JSON.stringify(response.user));
+        navigate("/main-page");
+      } else {
+        setError("Invalid email or password");
+      }
+    } catch (err) {
+      setError(err.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,8 +110,13 @@ function LoginForm({ switchToSignUp }) {
           </InputGroup>
         </Form.Group>
 
-        <Button variant="primary" type="submit" className="w-100">
-          Log In
+        <Button
+          variant="primary"
+          type="submit"
+          className="w-100"
+          disabled={loading}
+        >
+          {loading ? "Logging in..." : "Log In"}
         </Button>
       </Form>
 

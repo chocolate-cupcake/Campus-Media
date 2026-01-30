@@ -10,7 +10,7 @@ import {
   InputGroup,
 } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { getStudents, addStudent } from "../mainPage/studentData.js";
+import { register } from "../services/api.js";
 import { Eye, EyeSlash } from "react-bootstrap-icons";
 
 function SignUpForm({ switchToLogin }) {
@@ -27,6 +27,7 @@ function SignUpForm({ switchToLogin }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,7 +42,7 @@ function SignUpForm({ switchToLogin }) {
     reader.readAsDataURL(file);
   };
 
-  const handleSignUp = (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
@@ -57,30 +58,33 @@ function SignUpForm({ switchToLogin }) {
       setError("Please upload a profile picture");
       return;
     }
-    const students = getStudents();
-    if (students.find((s) => s.email === email)) {
-      setError("User already exists with this email");
-      return;
+
+    setLoading(true);
+
+    try {
+      const userData = {
+        name,
+        email,
+        university,
+        department,
+        password,
+        profileImage,
+      };
+
+      const response = await register(userData);
+
+      if (response.user) {
+        sessionStorage.setItem("currentUser", JSON.stringify(response.user));
+        setSuccess("Account created successfully! Redirecting...");
+        setTimeout(() => navigate("/main-page"), 1500);
+      } else {
+        setError("Failed to create account");
+      }
+    } catch (err) {
+      setError(err.message || "Failed to create account. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    const newUser = {
-      name,
-      email,
-      university,
-      department,
-      password,
-      profileImage,
-      posts: [],
-      stories: [],
-      friends: [],
-      suggestions: [],
-    };
-
-    const created = addStudent(newUser);
-    localStorage.setItem("currentUser", JSON.stringify(created));
-
-    setSuccess("Account created successfully! Redirecting...");
-    setTimeout(() => navigate("/main-page"), 1500);
   };
 
   return (
@@ -240,8 +244,9 @@ function SignUpForm({ switchToLogin }) {
           variant="success"
           type="submit"
           className="w-100 py-2 fw-semibold"
+          disabled={loading}
         >
-          Sign Up
+          {loading ? "Creating Account..." : "Sign Up"}
         </Button>
       </Form>
 

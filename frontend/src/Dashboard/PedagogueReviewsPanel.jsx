@@ -3,6 +3,13 @@ import { Card, InputGroup, Form, Button } from "react-bootstrap";
 import PedagogueTable from "./PedagogueTable.jsx";
 import universities from "./data.js";
 import ReviewModal from "./ReviewModal.jsx";
+import {
+  getCurrentUser,
+  getReviews,
+  createReview,
+  updateReview,
+  deleteReview as apiDeleteReview,
+} from "../services/api.js";
 
 export default function PedagogueReviewsPanel() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -14,7 +21,7 @@ export default function PedagogueReviewsPanel() {
   const [reviews, setReviews] = useState([]);
   const [reviewedProfessors, setReviewedProfessors] = useState(new Set());
   const [userReviewedProfessors, setUserReviewedProfessors] = useState(
-    new Set()
+    new Set(),
   );
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -24,17 +31,31 @@ export default function PedagogueReviewsPanel() {
   const [reviewId, setReviewId] = useState(null);
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) setCurrentUser(user);
-    try {
-      const raw = localStorage.getItem("campusMediaState");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
+    const fetchData = async () => {
+      try {
+        // Try session storage first
+        const cached = sessionStorage.getItem("currentUser");
+        if (cached) {
+          setCurrentUser(JSON.parse(cached));
+        }
+
+        const [user, reviewsData] = await Promise.all([
+          getCurrentUser(),
+          getReviews(),
+        ]);
+
+        if (user) {
+          setCurrentUser(user);
+          sessionStorage.setItem("currentUser", JSON.stringify(user));
+        }
+        if (Array.isArray(reviewsData)) {
+          setReviews(reviewsData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
       }
-    } catch (e) {
-      console.error(e);
-    }
+    };
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -68,7 +89,7 @@ export default function PedagogueReviewsPanel() {
 
   const universityOptions = useMemo(
     () => ["Any", ...(universities || []).map((u) => u.name)],
-    []
+    [],
   );
 
   const normalize = (s) =>
@@ -112,14 +133,14 @@ export default function PedagogueReviewsPanel() {
   const getDisplayProfRating = useCallback(
     (prof) => {
       const revs = reviews.filter(
-        (r) => r.targetType === "prof" && r.targetId === prof.id
+        (r) => r.targetType === "prof" && r.targetId === prof.id,
       );
       if (!revs.length) return prof.rating;
       const sum = revs.reduce((s, r) => s + (r.score || 0), 0);
       const avg = (prof.rating + sum) / (1 + revs.length);
       return Number(avg.toFixed(2));
     },
-    [reviews]
+    [reviews],
   );
 
   const findMatchesForStudent = () => {
@@ -140,16 +161,12 @@ export default function PedagogueReviewsPanel() {
     setMatchedProfessors(matches);
   };
 
-  const persistState = (newReviews) => {
+  const notifyReviewsUpdated = (newReviews) => {
     try {
-      const state = JSON.parse(
-        localStorage.getItem("campusMediaState") || "{}"
+      window.dispatchEvent(
+        new CustomEvent("cm:reviews-updated", { detail: newReviews }),
       );
-      state.reviews = newReviews;
-      localStorage.setItem("campusMediaState", JSON.stringify(state));
-    } catch (e) {
-      console.error(e);
-    }
+    } catch {}
   };
 
   const isStudent =
@@ -157,7 +174,7 @@ export default function PedagogueReviewsPanel() {
 
   const openReview = (type, id, name, currentRating) => {
     const existing = reviews.find(
-      (r) => r.targetType === type && r.targetId === id
+      (r) => r.targetType === type && r.targetId === id,
     );
     if (existing) {
       setReviewId(existing.id);
@@ -180,7 +197,7 @@ export default function PedagogueReviewsPanel() {
     setReviewId(null);
   };
 
-  const submitReview = () => {
+  const submitReview = async () => {
     if (!reviewTarget) return;
     if (!isStudent) return;
     if (reviewTarget.type === "prof") {
@@ -189,50 +206,68 @@ export default function PedagogueReviewsPanel() {
         return;
     }
     const { type, id } = reviewTarget;
-    const newReviews = [...reviews];
-    if (reviewId) {
-      const idx = newReviews.findIndex((r) => r.id === reviewId);
-      if (idx !== -1) {
-        const existing = newReviews[idx];
-        if (String(existing.reviewerId) !== String(currentUser.id)) return;
-        newReviews[idx] = {
-          ...existing,
+
+    try {
+      if (reviewId) {
+        // Update existing review
+        await updateReview(reviewId, {
           score: Number(reviewScore),
           comment: reviewComment,
-          reviewerId: existing.reviewerId || null,
-          date: new Date().toISOString(),
+        });
+
+        const newReviews = reviews.map((r) =>
+          r.id === reviewId
+            ? {
+                ...r,
+                score: Number(reviewScore),
+                comment: reviewComment,
+                date: new Date().toISOString(),
+              }
+            : r,
+        );
+        setReviews(newReviews);
+        notifyReviewsUpdated(newReviews);
+      } else {
+        // Create new review
+        const reviewData = {
+          targetType: type,
+          targetId: id,
+          score: Number(reviewScore),
+          comment: reviewComment,
         };
+
+        const newReview = await createReview(reviewData);
+        const newReviews = [...reviews, newReview];
+        setReviews(newReviews);
+        notifyReviewsUpdated(newReviews);
       }
-    } else {
-      const rid = Date.now().toString();
-      const reviewerToStore = isStudent ? String(currentUser.id) : null;
-      newReviews.push({
-        id: rid,
-        targetType: type,
-        targetId: id,
-        score: Number(reviewScore),
-        comment: reviewComment,
-        reviewerId: reviewerToStore,
-        date: new Date().toISOString(),
-      });
+    } catch (error) {
+      console.error("Failed to submit review:", error);
+      alert("Failed to submit review. Please try again.");
     }
-    setReviews(newReviews);
-    persistState(newReviews);
+
     closeReview();
   };
 
-  const deleteMyReview = (targetType, targetId) => {
+  const deleteMyReview = async (targetType, targetId) => {
     if (!currentUser) return;
-    const idx = reviews.findIndex(
+    const review = reviews.find(
       (r) =>
         r.targetType === targetType &&
         r.targetId === targetId &&
-        String(r.reviewerId) === String(currentUser.id)
+        String(r.reviewerId) === String(currentUser.id),
     );
-    if (idx === -1) return;
-    const newReviews = [...reviews.slice(0, idx), ...reviews.slice(idx + 1)];
-    setReviews(newReviews);
-    persistState(newReviews);
+    if (!review) return;
+
+    try {
+      await apiDeleteReview(review.id);
+      const newReviews = reviews.filter((r) => r.id !== review.id);
+      setReviews(newReviews);
+      notifyReviewsUpdated(newReviews);
+    } catch (error) {
+      console.error("Failed to delete review:", error);
+      alert("Failed to delete review. Please try again.");
+    }
   };
   const professorsList = useMemo(() => {
     const base = (
@@ -241,7 +276,7 @@ export default function PedagogueReviewsPanel() {
       .filter((p) =>
         studentUniversity === "Any"
           ? true
-          : sameUniversity(studentUniversity, p.university)
+          : sameUniversity(studentUniversity, p.university),
       )
       .map((p) => ({ ...p, rating: getDisplayProfRating(p) }));
     return base;
@@ -298,7 +333,7 @@ export default function PedagogueReviewsPanel() {
                 "prof",
                 p.id,
                 `${p.name} ${p.surname}`,
-                getDisplayProfRating(p)
+                getDisplayProfRating(p),
               )
             }
             onDeleteReview={(p) => deleteMyReview("prof", p.id)}
@@ -322,10 +357,15 @@ export default function PedagogueReviewsPanel() {
         reviews={reviews}
         reviewId={reviewId}
         currentUser={currentUser}
-        deleteReviewById={(rid) => {
-          const newReviews = reviews.filter((r) => r.id !== rid);
-          setReviews(newReviews);
-          persistState(newReviews);
+        deleteReviewById={async (rid) => {
+          try {
+            await apiDeleteReview(rid);
+            const newReviews = reviews.filter((r) => r.id !== rid);
+            setReviews(newReviews);
+            notifyReviewsUpdated(newReviews);
+          } catch (error) {
+            console.error("Failed to delete review:", error);
+          }
         }}
         canUserReviewTarget={(tgt) => {
           if (!isStudent || !tgt || !currentUser) return false;

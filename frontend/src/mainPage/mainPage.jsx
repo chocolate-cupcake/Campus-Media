@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import NavBar from "./navBar.jsx";
 import MainPageContainer from "./mainPageContainer.jsx";
 import SideSuggestions from "./sideSuggestions.jsx";
+import { getCurrentUser } from "../services/api.js";
 
 function MainPage() {
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -16,10 +17,24 @@ function MainPage() {
   }
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("currentUser"));
-    if (user) setCurrentUser(user);
-    // optionally redirect if not logged in
-    // else navigate("/login");
+    const fetchUser = async () => {
+      try {
+        // Try session storage first for cached user
+        const cached = sessionStorage.getItem("currentUser");
+        if (cached) {
+          setCurrentUser(JSON.parse(cached));
+        }
+        // Then verify with API
+        const user = await getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+          sessionStorage.setItem("currentUser", JSON.stringify(user));
+        }
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+    fetchUser();
   }, []);
 
   if (!currentUser) return <p>Loading...</p>;

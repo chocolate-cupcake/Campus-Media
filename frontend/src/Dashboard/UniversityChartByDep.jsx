@@ -18,38 +18,33 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 import universities from "./data.js";
+import { getReviews } from "../services/api.js";
 
 function UniversityChartByDep() {
   const [selectedType, setSelectedType] = useState("All");
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("campusMediaState");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
+    const fetchReviews = async () => {
+      try {
+        const reviewsData = await getReviews();
+        if (Array.isArray(reviewsData)) {
+          setReviews(reviewsData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
       }
-    } catch (e) {
-      void 0;
-    }
+    };
+    fetchReviews();
+
+    // Listen for review updates
     const handler = (e) => {
       const next = Array.isArray(e?.detail) ? e.detail : null;
       if (next) setReviews(next);
-      else {
-        try {
-          const raw = localStorage.getItem("campusMediaState");
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed.reviews)) setReviews(parsed.reviews);
-          }
-        } catch (e2) {
-          void 0;
-        }
-      }
+      else fetchReviews();
     };
     window.addEventListener("cm:reviews-updated", handler);
     return () => window.removeEventListener("cm:reviews-updated", handler);
@@ -63,8 +58,8 @@ function UniversityChartByDep() {
           const progTypes = Array.isArray(prog.type)
             ? prog.type
             : prog.type
-            ? [prog.type]
-            : [];
+              ? [prog.type]
+              : [];
           progTypes.forEach((t) => {
             if (t && t !== "All") typesSet.add(t);
           });
@@ -83,7 +78,7 @@ function UniversityChartByDep() {
             const programs = (dept.programs || []).filter((program) =>
               selectedType === "All"
                 ? true
-                : program.type?.includes(selectedType)
+                : program.type?.includes(selectedType),
             );
             return { ...dept, programs };
           })
@@ -122,7 +117,7 @@ function UniversityChartByDep() {
             (
               (uni.rating + revs.reduce((s, r) => s + (r.score || 0), 0)) /
               (1 + revs.length)
-            ).toFixed(2)
+            ).toFixed(2),
           )
         : uni.rating || 0;
       const base =

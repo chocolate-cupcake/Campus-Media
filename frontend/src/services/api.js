@@ -3,8 +3,9 @@
  * Handles all AJAX requests to the .NET backend API
  */
 
+// Update this URL to match your backend's address and port
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://localhost:7001/api";
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 /**
  * Generic fetch wrapper with error handling

@@ -11,12 +11,12 @@ import NavBar from "../mainPage/navBar.jsx";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./dashboard.css";
 import UniversityTable from "./UniversityTable";
-import UniversityChartByDep from "./UniversityChartByDep.jsx";
-import PedagogueTable from "./PedagogueTable.jsx";
-import GuestBanner from "./GuestBanner.jsx";
-import MatchingPrograms from "./MatchingPrograms.jsx";
-import UniversityReviewsPanel from "./UniversityReviewsPanel.jsx";
-import PedagogueReviewsPanel from "./PedagogueReviewsPanel.jsx";
+import UniversityChartByDep from "./UniversityChartByDep";
+import PedagogueTable from "./PedagogueTable";
+import GuestBanner from "./GuestBanner";
+import MatchingPrograms from "./MatchingPrograms";
+import UniversityReviewsPanel from "./UniversityReviewsPanel";
+import PedagogueReviewsPanel from "./PedagogueReviewsPanel";
 import { getCurrentUser } from "../services/api.js";
 
 function Dashboard() {

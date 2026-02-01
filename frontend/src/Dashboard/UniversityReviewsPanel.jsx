@@ -110,25 +110,11 @@ export default function UniversityReviewsPanel() {
   const notifyReviewsUpdated = (newReviews) => {
     try {
       window.dispatchEvent(
-        new CustomEvent("cm:reviews-updated", { detail: newReviews }),
+        new CustomEvent("cm:reviews-updated", { detail: newReviews })
       );
-<<<<<<< HEAD
-    } catch {}
-=======
-      state.data = data;
-      state.reviews = newReviews;
-      localStorage.setItem("campusMediaState", JSON.stringify(state));
-      try {
-        window.dispatchEvent(
-          new CustomEvent("cm:reviews-updated", { detail: newReviews })
-        );
-      } catch {
-        /* ignore event dispatch errors */
-      }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      /* ignore event dispatch errors */
     }
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
   };
 
   const openReview = (type, id, name, currentRating) => {

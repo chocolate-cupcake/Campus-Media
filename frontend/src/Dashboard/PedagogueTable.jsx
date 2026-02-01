@@ -75,14 +75,8 @@ function PedagogueTable({
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
-<<<<<<< HEAD
     };
     fetchData();
-=======
-    } catch (err) {
-      console.error(err);
-    }
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
   }, [useInternal]);
 
   useEffect(() => {

@@ -54,14 +54,8 @@ export default function UniversityReviewsPanel() {
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }
-<<<<<<< HEAD
     };
     fetchData();
-=======
-    } catch {
-      /* ignore parse errors */
-    }
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
   }, []);
 
   useEffect(() => {

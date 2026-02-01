@@ -41,19 +41,10 @@ function UniversityChartByDep() {
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
       }
-<<<<<<< HEAD
     };
     fetchReviews();
 
     // Listen for review updates
-    const handler = (e) => {
-      const next = Array.isArray(e?.detail) ? e.detail : null;
-      if (next) setReviews(next);
-      else fetchReviews();
-=======
-    } catch {
-      /* ignore parse errors */
-    }
     const handler = (e) => {
       const next = Array.isArray(e?.detail) ? e.detail : null;
       if (next) setReviews(next);
@@ -68,7 +59,6 @@ function UniversityChartByDep() {
           /* ignore parse errors */
         }
       }
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     };
     window.addEventListener("cm:reviews-updated", handler);
     return () => window.removeEventListener("cm:reviews-updated", handler);

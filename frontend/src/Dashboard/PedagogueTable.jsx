@@ -155,13 +155,7 @@ function PedagogueTable({
     return sameUniversity(currentUser.university, p.university);
   };
 
-<<<<<<< HEAD
   const notifyReviewsUpdated = (newReviews) => {
-=======
-  const persist = (newReviews) => {
-    // Save updated reviews to `campusMediaState.reviews` in localStorage.
-    // This is a small, defensive helper used by the internal fallback mode.
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     try {
       window.dispatchEvent(
         new CustomEvent("cm:reviews-updated", { detail: newReviews }),
@@ -193,13 +187,9 @@ function PedagogueTable({
     setModalOpen(true);
   };
 
-<<<<<<< HEAD
   const submitInternal = async () => {
-=======
-  const submitInternal = () => {
     // Validate and store the review to local state + localStorage. Edits are
     // permitted only if the current user is the original reviewer.
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     if (!reviewTarget || !currentUser) return;
 
     try {
@@ -248,12 +238,8 @@ function PedagogueTable({
     setReviewId(null);
   };
 
-<<<<<<< HEAD
   const deleteInternal = async (p) => {
-=======
-  const deleteInternal = (p) => {
     // Remove the current user's review for the given professor (if any).
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
     if (!currentUser) return;
     const review = reviews.find(
       (r) =>

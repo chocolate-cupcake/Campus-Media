@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 // - Encourages guests to sign up or log in; contains navigation CTA only.
 export default function GuestBanner() {
   const navigate = useNavigate();
-<<<<<<< HEAD
   const show = useMemo(() => {
     const hide = sessionStorage.getItem("hideGuestBanner") === "1";
     if (hide) return false;
@@ -21,9 +20,6 @@ export default function GuestBanner() {
   }, []);
 
   if (!show) return null;
-=======
-  
->>>>>>> 95bf94852402ac5abb779aec3ac1be3dbd1c61c5
 
   return (
     <Row className="mb-3">

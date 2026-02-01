@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import NavBar from "../mainPage/navBar.jsx";
 import { Container, Row, Col, Card, Button, Form, Image } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
-import { students as studentData } from "../mainPage/studentData";
-
+import api from "../services/api";
 
 function StudentProfile({ student }) {
   const navigate = useNavigate();
@@ -22,167 +21,213 @@ function StudentProfile({ student }) {
   const [postImage, setPostImage] = useState(null);
   const [postFeeling, setPostFeeling] = useState("");
   const [postLocation, setPostLocation] = useState("");
+  const [loading, setLoading] = useState(true);
   const fileInputRef = useRef();
 
   useEffect(() => {
-    const user = student || JSON.parse(localStorage.getItem("currentUser"));
-    if (!user) {
-      navigate("/logIn");
-      return;
-    }
+    const loadUserData = async () => {
+      const user = student || JSON.parse(localStorage.getItem("currentUser"));
+      if (!user) {
+        navigate("/logIn");
+        return;
+      }
 
-    setCurrentUser(user);
+      setCurrentUser(user);
+      setLoading(true);
 
-    // ✅ FIX: Ensure studentData is treated as an array before using .find()
-    const dummyList = Array.isArray(studentData)
-      ? studentData
-      : Array.isArray(studentData.students)
-      ? studentData.students
-      : [];
+      try {
+        const profileData = await api.getUserProfile(user.id);
+        
+        setBio(profileData.bio || "");
+        setAbout(profileData.about || "");
 
-    const dummy = dummyList.find(
-      (s) => s.email && user.email && s.email.toLowerCase() === user.email.toLowerCase()
-    );
+        setCurrentUser((prev) => ({
+          ...prev,
+          profileImage: profileData.profileImage ?? prev.profileImage,
+          name: profileData.name ?? prev.name,
+          university: profileData.university ?? prev.university ?? prev.department,
+          department: profileData.department ?? prev.department,
+        }));
 
-    const savedBio = localStorage.getItem(`student_bio_${user.id}`);
-    const savedAbout = localStorage.getItem(`student_about_${user.id}`);
-    const savedLikes = JSON.parse(localStorage.getItem(`student_likes_${user.id}`) || "{}");
-    const savedLikesCount = JSON.parse(localStorage.getItem(`student_likesCount_${user.id}`) || "{}");
-    const savedComments = JSON.parse(localStorage.getItem(`student_comments_${user.id}`) || "{}");
-    const savedPosts = JSON.parse(localStorage.getItem(`student_posts_${user.id}`) || "[]");
+        const postsData = await api.getProfilePosts(user.id);
 
-    const effectiveBio =
-      savedBio !== null ? savedBio : dummy?.bio ? dummy.bio : "";
+        const normalizedPosts = postsData.map(post => ({
+          id: post.postId || post.PostId || post.id,
+          userId: post.userId || post.UserId,
+          image: post.image || post.Image,
+          caption: post.caption || post.Caption,
+          text: post.caption || post.Caption || post.text,
+          date: post.date || post.Date,
+          feeling: post.feeling || post.Feeling,
+          location: post.location || post.Location,
+          comments: post.comments || post.Comments || [],
+          likesCount: post.likesCount || 0,
+          isLikedByCurrentUser: post.isLikedByCurrentUser || false
+        }));
 
-    const effectiveAbout =
-      savedAbout !== null ? savedAbout : dummy?.about ? dummy.about : "";
+        normalizedPosts.sort((a, b) => b.id - a.id);
 
-    const effectivePosts =
-      Array.isArray(savedPosts) && savedPosts.length > 0
-        ? savedPosts
-        : Array.isArray(dummy?.posts)
-        ? dummy.posts
-        : [];
+        setPosts(normalizedPosts || []);
 
-    const effectiveLikes =
-      savedLikes && Object.keys(savedLikes).length > 0 ? savedLikes : {};
+        const initialLikes = {};
+        const initialLikesCount = {};
+        const initialComments = {};
 
-    let effectiveLikesCount =
-      savedLikesCount && Object.keys(savedLikesCount).length > 0
-        ? savedLikesCount
-        : {};
+        normalizedPosts.forEach((post) => {
+          initialLikesCount[post.id] = post.likesCount || 0;
+          initialLikes[post.id] = post.isLikedByCurrentUser || false;
+          initialComments[post.id] = post.comments || [];
+        });
 
-    const effectiveComments =
-      savedComments && Object.keys(savedComments).length > 0
-        ? savedComments
-        : {};
+        setLikes(initialLikes);
+        setLikesCount(initialLikesCount);
+        setComments(initialComments);
 
-    effectivePosts.forEach((p) => {
-      if (!effectiveLikesCount[p.id])
-        effectiveLikesCount[p.id] = effectiveLikesCount[p.id] || 0;
-    });
+      } catch (error) {
+        console.error("Error loading user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setBio(effectiveBio);
-    setAbout(effectiveAbout);
-    setLikes(effectiveLikes);
-    setLikesCount(effectiveLikesCount);
-    setComments(effectiveComments);
-    setPosts(effectivePosts);
-
-    setCurrentUser((prev) => ({
-      ...prev,
-      profileImage: dummy?.profileImage ?? prev.profileImage,
-      name: dummy?.name ?? prev.name,
-      university: dummy?.university ?? prev.university ?? prev.department,
-      department: dummy?.department ?? prev.department,
-    }));
+    loadUserData();
   }, [navigate, student]);
 
-  if (!currentUser) return null;
+  if (!currentUser || loading) return <div>Loading...</div>;
 
-  const saveBio = () => {
-    localStorage.setItem(`student_bio_${currentUser.id}`, bio);
-    setEditingBio(false);
+  const saveBio = async () => {
+    try {
+      await api.updateUserBio(currentUser.id, bio);
+      setEditingBio(false);
+    } catch (error) {
+      console.error("Error saving bio:", error);
+      alert("Failed to save bio. Please try again.");
+    }
   };
 
-  const saveAbout = () => {
-    localStorage.setItem(`student_about_${currentUser.id}`, about);
-    setEditingAbout(false);
+  const saveAbout = async () => {
+    try {
+      await api.updateUserAbout(currentUser.id, about);
+      setEditingAbout(false);
+    } catch (error) {
+      console.error("Error saving about:", error);
+      alert("Failed to save about section. Please try again.");
+    }
   };
 
   const toggleLike = (postId) => {
-    const updated = { ...likes, [postId]: !likes[postId] };
-    setLikes(updated);
-    localStorage.setItem(`student_likes_${currentUser.id}`, JSON.stringify(updated));
+    const wasLiked = !!likes[postId];
+    
+    const updatedLikes = { ...likes, [postId]: !wasLiked };
+    setLikes(updatedLikes);
 
     setLikesCount((prev) => {
-      const wasLiked = !!likes[postId];
       const prevCount = prev[postId] || 0;
       const nextCount = wasLiked ? Math.max(prevCount - 1, 0) : prevCount + 1;
-      const updatedCounts = { ...prev, [postId]: nextCount };
-      localStorage.setItem(`student_likesCount_${currentUser.id}`, JSON.stringify(updatedCounts));
-      return updatedCounts;
+      return { ...prev, [postId]: nextCount };
     });
   };
 
-  const submitComment = (postId) => {
+  const submitComment = async (postId) => {
     const text = (newCommentText[postId] || "").trim();
     if (!text) return;
-    const postComments = comments[postId] ? [...comments[postId]] : [];
-    postComments.push({ id: Date.now(), text, date: new Date().toISOString() });
 
-    const updated = { ...comments, [postId]: postComments };
-    setComments(updated);
-    localStorage.setItem(`student_comments_${currentUser.id}`, JSON.stringify(updated));
-    setNewCommentText((s) => ({ ...s, [postId]: "" }));
+    try {
+      const nameParts = currentUser.name.split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      const newComment = await api.addComment({
+        postId: postId,
+        userName: firstName,
+        userSurname: lastName,
+        commentText: text,
+      });
+
+      const postComments = comments[postId] ? [...comments[postId]] : [];
+      postComments.push(newComment);
+
+      setComments({ ...comments, [postId]: postComments });
+      setNewCommentText((s) => ({ ...s, [postId]: "" }));
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+      alert("Failed to submit comment. Please try again.");
+    }
   };
 
-  const deletePost = (postId) => {
-    const updated = posts.filter((p) => p.id !== postId);
-    setPosts(updated);
-    localStorage.setItem(`student_posts_${currentUser.id}`, JSON.stringify(updated));
+  const deletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
 
-    const newLikes = { ...likes };
-    const newLikesCount = { ...likesCount };
-    const newComments = { ...comments };
-    const newInput = { ...newCommentText };
+    try {
+      await api.deletePost(postId);
 
-    delete newLikes[postId];
-    delete newLikesCount[postId];
-    delete newComments[postId];
-    delete newInput[postId];
+      const updatedPosts = posts.filter((p) => p.id !== postId);
+      setPosts(updatedPosts);
 
-    setLikes(newLikes);
-    setLikesCount(newLikesCount);
-    setComments(newComments);
-    setNewCommentText(newInput);
+      const newLikes = { ...likes };
+      const newLikesCount = { ...likesCount };
+      const newComments = { ...comments };
+      const newInput = { ...newCommentText };
+
+      delete newLikes[postId];
+      delete newLikesCount[postId];
+      delete newComments[postId];
+      delete newInput[postId];
+
+      setLikes(newLikes);
+      setLikesCount(newLikesCount);
+      setComments(newComments);
+      setNewCommentText(newInput);
+    } catch (error) {
+      console.error("Error deleting post:", error);
+      alert("Failed to delete post. Please try again.");
+    }
   };
 
-  const createPost = () => {
+  const createPost = async () => {
     if (!postText && !postImage) return;
-    const newPost = {
-      id: Date.now(),
-      text: postText,
-      image: postImage,
-      feeling: postFeeling,
-      location: postLocation,
-      date: new Date().toLocaleString(),
-    };
 
-    const updated = [newPost, ...posts];
-    setPosts(updated);
-    localStorage.setItem(`student_posts_${currentUser.id}`, JSON.stringify(updated));
+    try {
+      const postData = {
+        Image: postImage || "",
+        Caption: postText || "",
+      };
 
-    setLikesCount((prev) => {
-      const updatedCounts = { ...prev, [newPost.id]: 0 };
-      localStorage.setItem(`student_likesCount_${currentUser.id}`, JSON.stringify(updatedCounts));
-      return updatedCounts;
-    });
+      if (postFeeling) {
+        postData.Feeling = postFeeling;
+      }
+      if (postLocation) {
+        postData.Location = postLocation;
+      }
 
-    setPostText("");
-    setPostImage(null);
-    setPostFeeling("");
-    setPostLocation("");
+      const newPost = await api.createProfilePost(currentUser.id, postData);
+
+      const normalizedPost = {
+        id: newPost.postId || newPost.PostId || newPost.id,
+        userId: newPost.userId || newPost.UserId,
+        image: newPost.image || newPost.Image || "",
+        caption: newPost.caption || newPost.Caption || "",
+        text: newPost.caption || newPost.Caption || newPost.text || "",
+        date: newPost.date || newPost.Date,
+        feeling: newPost.feeling || newPost.Feeling || "",
+        location: newPost.location || newPost.Location || "",
+        comments: [],
+        likesCount: 0,
+        isLikedByCurrentUser: false
+      };
+
+      setPosts([normalizedPost, ...posts]);
+      setLikesCount((prev) => ({ ...prev, [normalizedPost.id]: 0 }));
+      setComments((prev) => ({ ...prev, [normalizedPost.id]: [] }));
+
+      setPostText("");
+      setPostImage(null);
+      setPostFeeling("");
+      setPostLocation("");
+    } catch (error) {
+      console.error("Error creating post:", error);
+      alert("Failed to create post. Please try again.");
+    }
   };
 
   const handleFileChange = (e) => {
@@ -193,8 +238,6 @@ function StudentProfile({ student }) {
       reader.readAsDataURL(file);
     }
   };
-
-  const emojiList = ["😊", "😂", "😎", "😍", "🤔", "🥳", "😭", "❤️"];
 
   const handleLocation = () => {
     if (navigator.geolocation) {
@@ -378,11 +421,11 @@ function StudentProfile({ student }) {
 
                   {(comments[p.id] || []).map((c) => (
                     <div key={c.id} className="mb-2">
-                      <strong>{currentUser.name}</strong>{" "}
+                      <strong>{c.userName} {c.userSurname}</strong>{" "}
                       <small className="text-muted">
                         {new Date(c.date).toLocaleString()}
                       </small>
-                      <div>{c.text}</div>
+                      <div>{c.commentText}</div>
                     </div>
                   ))}
 

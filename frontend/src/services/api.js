@@ -532,6 +532,101 @@ export async function getUniversityChartData(programType = "All") {
     programType !== "All" ? `?type=${encodeURIComponent(programType)}` : "";
   return await fetchApi(`/charts/universities-by-department${params}`);
 }
+// ============================================
+// USER PROFILE API
+// ============================================
+
+/**
+ * Get user profile by ID
+ * @param {number} userId
+ * @returns {Promise<object>}
+ */
+export async function getUserProfile(userId) {
+  return await fetchApi(`/UserProfile/${userId}`);
+}
+
+/**
+ * Update user bio
+ * @param {number} userId
+ * @param {string} bio - The new bio text
+ * @returns {Promise<object>}
+ */
+export async function updateUserBio(userId, bio) {
+  return await fetchApi(`/UserProfile/bio/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify({ bio: bio }), // Wrapped in an object with 'bio' property
+  });
+}
+
+/**
+ * Update user about section
+ * @param {number} userId
+ * @param {string} about - The new about text
+ * @returns {Promise<object>}
+ */
+export async function updateUserAbout(userId, about) {
+  return await fetchApi(`/UserProfile/about/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify({ about: about }), // Wrapped in an object with 'about' property
+  });
+}
+
+// ============================================
+// PROFILE POST API
+// ============================================
+
+/**
+ * Create a new profile post
+ * @param {number} userId
+ * @param {object} postData - Post content
+ * @returns {Promise<object>}
+ */
+export async function createProfilePost(userId, postData) {
+  console.log("📤 Creating profile post for userId:", userId);
+  console.log("📦 Post data being sent:", postData);
+  console.log("🌐 Full URL:", `${API_BASE_URL}/ProfilePost/${userId}`);
+  
+  return await fetchApi(`/ProfilePost/${userId}`, {
+    method: "POST",
+    body: JSON.stringify(postData),
+  });
+}
+
+/**
+ * Add a comment to a post
+ * @param {object} commentData - { postId, userName, userSurname, commentText }
+ * @returns {Promise<object>}
+ */
+export async function addComment(commentData) {
+  console.log("🔍 addComment called with:", commentData);
+  console.log("🌐 Full URL will be:", `${API_BASE_URL}/ProfilePost/comment`);
+  console.log("📦 Body will be:", JSON.stringify({
+    postId: commentData.postId,
+    userName: commentData.userName,
+    userSurname: commentData.userSurname,
+    commentText: commentData.commentText
+  }));
+  
+  return await fetchApi("/ProfilePost/comment", {
+    method: "POST",
+    body: JSON.stringify({
+      postId: commentData.postId,
+      userName: commentData.userName,
+      userSurname: commentData.userSurname,
+      commentText: commentData.commentText
+    }),
+  });
+}
+
+
+/**
+ * Get all posts for a user
+ * @param {number} userId
+ * @returns {Promise<Array>}
+ */
+export async function getProfilePosts(userId) {
+  return await fetchApi(`/ProfilePost/posts/${userId}`);
+}
 
 // ============================================
 // EXPORT DEFAULT API OBJECT
@@ -600,6 +695,16 @@ const api = {
 
   // Charts
   getUniversityChartData,
+  
+   // User Profile
+  getUserProfile,
+  updateUserBio,
+  updateUserAbout,
+
+  // Profile Posts
+  createProfilePost,
+  addComment,
+  getProfilePosts,
 };
 
 export default api;

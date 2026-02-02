@@ -572,6 +572,51 @@ export async function updateUserAbout(userId, about) {
 }
 
 // ============================================
+// CONVERSATIONS & MESSAGES API
+// ============================================
+
+/**
+ * Get conversations for the current user (logged-in)
+ * @returns {Promise<Array>} List of { conversationId, otherUser: { id, name, profileImage }, lastMessage, lastMessageTime, unreadCount }
+ */
+export async function getConversations() {
+  return await fetchApi("/conversation");
+}
+
+/**
+ * Get message history between current user and another user
+ * @param {number} otherUserId - ID of the other user in the conversation
+ * @returns {Promise<Array>} List of messages with senderName, senderProfileImage, content, timeSent, etc.
+ */
+export async function getMessageHistory(otherUserId) {
+  return await fetchApi(`/message/history?otherUserId=${otherUserId}`);
+}
+
+/**
+ * Send a message to a user
+ * @param {number} receiverId - ID of the recipient
+ * @param {string} content - Message text
+ * @returns {Promise<object>} Created message
+ */
+export async function sendMessage(receiverId, content) {
+  return await fetchApi("/message/send", {
+    method: "POST",
+    body: JSON.stringify({ receiverId, content }),
+  });
+}
+
+/**
+ * Mark messages from a sender as read (current user is receiver)
+ * @param {number} senderId - ID of the user who sent the messages
+ * @returns {Promise<void>}
+ */
+export async function markMessagesRead(senderId) {
+  return await fetchApi(`/message/mark-read?senderId=${senderId}`, {
+    method: "POST",
+  });
+}
+
+// ============================================
 // PROFILE POST API
 // ============================================
 
@@ -705,6 +750,12 @@ const api = {
   createProfilePost,
   addComment,
   getProfilePosts,
+
+  // Conversations & Messages
+  getConversations,
+  getMessageHistory,
+  sendMessage,
+  markMessagesRead,
 };
 
 export default api;

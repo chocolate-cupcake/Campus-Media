@@ -2,109 +2,88 @@ import React, { useState, useEffect, useRef } from "react";
 import { Card } from "react-bootstrap";
 import Message from "./message.jsx";
 import ChatInput from "./chatInput.jsx";
-import { getConversation, createMessage } from "./messageModel.js";
+import { getMessageHistory, sendMessage as apiSendMessage } from "../services/api.js";
 import "./chatStyles.css";
 
 /**
  * ChatWindow Component
- * 
- * Main chat interface component that displays messages and handles sending new messages.
- * This component:
- * - Loads messages from localStorage for the current conversation
- * - Displays messages in chronological order
- * - Allows sending text messages and emojis
- * - Provides an emoji picker for quick emoji selection
- * - Auto-scrolls to latest message when new messages arrive
- * 
+ *
+ * Loads messages from the backend and sends new messages via the API.
+ * Displays sender name and profile image via API message shape (senderName, senderProfileImage).
+ *
  * Props:
- * @param {Object} user - The user object representing the person you're chatting with
- * @param {number} user.id - ID of the user you're chatting with
- * @param {string} user.name - Name of the user
- * @param {string} user.avatar - Avatar image URL
+ * @param {Object} user - The other user in the conversation { id, name, avatar }
+ * @param {number} currentUserId - Logged-in user's ID
  */
-function ChatWindow({ user }) {
-  // State for managing messages in the conversation
+function ChatWindow({ user, currentUserId }) {
   const [messages, setMessages] = useState([]);
-  
-  // Get current user from localStorage
-  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  const currentUserId = currentUser ? currentUser.id : null;
-  
-  // Ref for scrolling to bottom of messages
+  const [loading, setLoading] = useState(true);
+  const [sendError, setSendError] = useState(null);
   const messagesEndRef = useRef(null);
-  
-  /**
-   * Loads messages from localStorage when the component mounts or when user changes
-   * This works like WhatsApp - it retrieves all messages between current user and selected user
-   */
+
   useEffect(() => {
-    if (currentUserId && user?.id) {
-      // Get all messages in this conversation from localStorage
-      const conversationMessages = getConversation(currentUserId, user.id);
-      
-      // Transform messages to include isOwn flag for display purposes
-      const transformedMessages = conversationMessages.map((msg) => ({
-        ...msg,
-        isOwn: msg.senderId === currentUserId, // True if message was sent by current user
-      }));
-      
-      setMessages(transformedMessages);
-      
-      // Scroll to bottom when messages load
-      scrollToBottom();
+    if (!currentUserId || !user?.id) {
+      setMessages([]);
+      setLoading(false);
+      return;
     }
+    let cancelled = false;
+    setLoading(true);
+    getMessageHistory(user.id)
+      .then((list) => {
+        if (cancelled) return;
+        const transformed = (list || []).map((m) => ({
+          id: m.id,
+          message: m.content,
+          emoji: "",
+          isOwn: Number(m.senderId) === Number(currentUserId),
+          timestamp: typeof m.timeSent === "string" ? new Date(m.timeSent).getTime() : m.timeSent,
+          senderName: m.senderName,
+          senderProfileImage: m.senderProfileImage,
+        }));
+        setMessages(transformed);
+      })
+      .catch(() => {
+        if (!cancelled) setMessages([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [currentUserId, user?.id]);
-  
-  /**
-   * Scrolls the messages container to the bottom
-   * This ensures the latest message is always visible (like WhatsApp)
-   */
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  
-  // Auto-scroll when messages change
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-  
-  /**
-   * Handles sending a message from the ChatInput component
-   * Creates a message object and saves it to localStorage
-   * Works like WhatsApp - messages are persisted and can be retrieved later
-   * 
-   * @param {string} messageText - The message text content
-   * @param {string} emoji - The emoji (if any) - emojis are stored as part of message text
-   */
-  const handleSendMessage = (messageText, emoji) => {
-    if (!messageText) return;
-    
-    if (currentUserId && user?.id) {
-      // Create and save message using messageModel
-      // Emojis are included in the message text itself (like WhatsApp)
-      const savedMessage = createMessage({
-        senderId: currentUserId,
-        receiverId: user.id,
-        message: messageText,
-        emoji: "", // Emojis are stored as part of message text
-      });
-      
-      if (savedMessage) {
-        // Add message to local state for immediate display
-        setMessages([
-          ...messages,
+
+  const handleSendMessage = (messageText) => {
+    if (!messageText || !currentUserId || !user?.id) return;
+    setSendError(null);
+    apiSendMessage(user.id, messageText)
+      .then((saved) => {
+        const timeMs = typeof saved.timeSent === "string" ? new Date(saved.timeSent).getTime() : (saved.timeSent && new Date(saved.timeSent).getTime()) || Date.now();
+        setMessages((prev) => [
+          ...prev,
           {
-            ...savedMessage,
+            id: saved.id,
+            message: saved.content,
+            emoji: "",
             isOwn: true,
+            timestamp: timeMs,
           },
         ]);
-      }
-    }
+      })
+      .catch((e) => {
+        setSendError(e.message || "Failed to send message.");
+      });
   };
   
   return (
     <div className="chat-window-container" style={{ backgroundColor: "#f8f9fa" }}>
-      {/* Chat Header - displays recipient info using Bootstrap Card */}
       <Card className="chat-header rounded-0 border-bottom shadow-sm" style={{ backgroundColor: "#E8F1FF", borderBottom: "2px solid #B8D4F1" }}>
         <Card.Body className="d-flex align-items-center py-2">
           <img
@@ -116,22 +95,31 @@ function ChatWindow({ user }) {
         </Card.Body>
       </Card>
 
-      {/* Messages Area - displays all messages in the conversation */}
+      {sendError && (
+        <div className="alert alert-danger rounded-0 mb-0 py-2" role="alert">
+          {sendError}
+        </div>
+      )}
+
       <div className="messages-container">
-        {messages.map((msg) => (
-          <Message
-            key={msg.id}
-            message={msg.message}
-            emoji={msg.emoji}
-            isOwn={msg.isOwn}
-            timestamp={msg.timestamp}
-          />
-        ))}
-        {/* Invisible div to scroll to bottom */}
-        <div ref={messagesEndRef} />
+        {loading ? (
+          <div className="d-flex justify-content-center py-4 text-muted">Loading messages...</div>
+        ) : (
+          <>
+            {messages.map((msg) => (
+              <Message
+                key={msg.id}
+                message={msg.message}
+                emoji={msg.emoji}
+                isOwn={msg.isOwn}
+                timestamp={msg.timestamp}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </div>
 
-      {/* Input Area - uses ChatInput component */}
       <ChatInput
         onSend={handleSendMessage}
         receiverId={user?.id}

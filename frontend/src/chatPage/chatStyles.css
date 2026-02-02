@@ -86,12 +86,16 @@
   width: 100%;
 }
 
+/* Your messages: right side */
 .message-wrapper.own-message {
   justify-content: flex-end;
+  margin-left: auto;
 }
 
+/* Other person's messages: left side */
 .message-wrapper.received-message {
   justify-content: flex-start;
+  margin-right: auto;
 }
 
 /* Message bubble container */

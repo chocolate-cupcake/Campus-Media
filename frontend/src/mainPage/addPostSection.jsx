@@ -1,17 +1,34 @@
 import { useState } from "react";
-import { createPost } from "../services/api.js";
+import { createProfilePost } from "../services/api.js";
 import { useNavigate } from "react-router-dom";
 import ProfileLink from "../profile/ProfileLink.jsx";
 
 // Import icons
-import { FaImage, FaSmile, FaMapMarkerAlt } from "react-icons/fa";
+import { FaImage, FaSmile, FaMapMarkerAlt, FaTimes } from "react-icons/fa";
 import Buttons from "../mainPage/Buttons.jsx";
 
-function AddPostSection({ currentUser, setCurrentUser }) {
+// Feeling options
+const FEELINGS = [
+  "😊 Happy",
+  "😢 Sad",
+  "😍 Loved",
+  "😎 Cool",
+  "😤 Angry",
+  "🤔 Thoughtful",
+  "😴 Tired",
+  "🎉 Excited",
+  "😌 Relaxed",
+  "💪 Motivated",
+];
+
+function AddPostSection({ currentUser, setCurrentUser, onNewPost }) {
   const navigate = useNavigate();
   const [postText, setPostText] = useState("");
   const [postImage, setPostImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [postFeeling, setPostFeeling] = useState("");
+  const [postLocation, setPostLocation] = useState("");
+  const [showFeelingPicker, setShowFeelingPicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleImageUpload = (e) => {
@@ -31,31 +48,86 @@ function AddPostSection({ currentUser, setCurrentUser }) {
     setImagePreview(null);
   };
 
+  const handleFeelingSelect = (feeling) => {
+    setPostFeeling(feeling);
+    setShowFeelingPicker(false);
+  };
+
+  const handleLocationClick = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const loc = `📍 Lat: ${pos.coords.latitude.toFixed(2)}, Lon: ${pos.coords.longitude.toFixed(2)}`;
+          setPostLocation(loc);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          // Fallback: prompt user to enter location manually
+          const manualLocation = prompt("Enter your location:");
+          if (manualLocation) {
+            setPostLocation(`📍 ${manualLocation}`);
+          }
+        },
+      );
+    } else {
+      const manualLocation = prompt(
+        "Geolocation not supported. Enter your location:",
+      );
+      if (manualLocation) {
+        setPostLocation(`📍 ${manualLocation}`);
+      }
+    }
+  };
+
   const handleAddPost = async () => {
-    if (!postText.trim() && !postImage) return;
+    if (!postText.trim() && !postImage && !postFeeling && !postLocation) return;
 
     setLoading(true);
 
     try {
       const postData = {
-        image: postImage || "",
-        caption: postText,
-        date: new Date().toISOString().split("T")[0],
+        Image: postImage || "",
+        Caption: postText,
       };
 
-      const newPost = await createPost(postData);
+      // Add feeling and location if set
+      if (postFeeling) {
+        postData.Feeling = postFeeling;
+      }
+      if (postLocation) {
+        postData.Location = postLocation;
+      }
 
-      const updatedUser = {
-        ...currentUser,
-        posts: [...currentUser.posts, newPost],
+      const newPost = await createProfilePost(currentUser.id, postData);
+
+      // Normalize the response
+      const normalizedPost = {
+        id: newPost.postId || newPost.PostId || newPost.id,
+        image: newPost.image || newPost.Image || "",
+        caption: newPost.caption || newPost.Caption || "",
+        date:
+          newPost.date ||
+          newPost.Date ||
+          new Date().toISOString().split("T")[0],
+        feeling: newPost.feeling || newPost.Feeling || "",
+        location: newPost.location || newPost.Location || "",
+        likes: [],
+        posterName: currentUser.name,
+        posterImage: currentUser.profileImage,
+        posterId: currentUser.id,
       };
 
-      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
-      setCurrentUser(updatedUser);
+      // Notify parent component about the new post
+      if (onNewPost) {
+        onNewPost(normalizedPost);
+      }
 
+      // Reset form
       setPostText("");
       setPostImage(null);
       setImagePreview(null);
+      setPostFeeling("");
+      setPostLocation("");
     } catch (error) {
       console.error("Failed to create post:", error);
       alert("Failed to create post. Please try again.");
@@ -127,6 +199,53 @@ function AddPostSection({ currentUser, setCurrentUser }) {
           </div>
         )}
 
+        {/* Selected Feeling & Location Tags */}
+        {(postFeeling || postLocation) && (
+          <div className="d-flex flex-wrap gap-2 mb-3">
+            {postFeeling && (
+              <span className="badge bg-warning text-dark d-flex align-items-center gap-1">
+                {postFeeling}
+                <FaTimes
+                  size={12}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setPostFeeling("")}
+                />
+              </span>
+            )}
+            {postLocation && (
+              <span className="badge bg-danger d-flex align-items-center gap-1">
+                {postLocation}
+                <FaTimes
+                  size={12}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setPostLocation("")}
+                />
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Feeling Picker Dropdown */}
+        {showFeelingPicker && (
+          <div
+            className="mb-3 p-2 border rounded bg-light"
+            style={{ maxHeight: "150px", overflowY: "auto" }}
+          >
+            <div className="d-flex flex-wrap gap-2">
+              {FEELINGS.map((feeling) => (
+                <span
+                  key={feeling}
+                  className="badge bg-warning text-dark"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleFeelingSelect(feeling)}
+                >
+                  {feeling}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Add options row (icons) */}
         <div className="d-flex justify-content-between align-items-center mt-3 border-top pt-3">
           <div className="d-flex align-items-center gap-3">
@@ -148,6 +267,7 @@ function AddPostSection({ currentUser, setCurrentUser }) {
             <span
               className="text-warning d-flex align-items-center gap-1"
               style={{ cursor: "pointer" }}
+              onClick={() => setShowFeelingPicker(!showFeelingPicker)}
             >
               <FaSmile size={20} /> <span className="small">Feeling</span>
             </span>
@@ -155,6 +275,7 @@ function AddPostSection({ currentUser, setCurrentUser }) {
             <span
               className="text-danger d-flex align-items-center gap-1"
               style={{ cursor: "pointer" }}
+              onClick={handleLocationClick}
             >
               <FaMapMarkerAlt size={18} />{" "}
               <span className="small">Location</span>
@@ -164,9 +285,12 @@ function AddPostSection({ currentUser, setCurrentUser }) {
           <button
             className="btn btn-primary px-4 rounded-pill"
             onClick={handleAddPost}
-            disabled={!postText.trim() && !postImage}
+            disabled={
+              loading ||
+              (!postText.trim() && !postImage && !postFeeling && !postLocation)
+            }
           >
-            Post
+            {loading ? "Posting..." : "Post"}
           </button>
         </div>
       </div>

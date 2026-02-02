@@ -42,6 +42,20 @@ function MainPageContainer() {
     fetchData();
   }, []);
 
+  // Handle post updates (e.g., after like/unlike)
+  const handlePostUpdate = (updatedPost) => {
+    setFeedPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === updatedPost.id ? { ...post, ...updatedPost } : post,
+      ),
+    );
+  };
+
+  // Handle new post creation
+  const handleNewPost = (newPost) => {
+    setFeedPosts((prevPosts) => [newPost, ...prevPosts]);
+  };
+
   if (loading || !currentUser) return <p>Loading...</p>;
 
   // Use feedPosts from API, or combine from local data if needed
@@ -52,6 +66,8 @@ function MainPageContainer() {
           ...friends.flatMap((friend) =>
             (friend.posts || []).map((post) => ({
               ...post,
+              likes: post.likes || [],
+              comments: post.comments || [],
               posterName: friend.name,
               posterImage: friend.profileImage,
               posterId: friend.id,
@@ -59,6 +75,8 @@ function MainPageContainer() {
           ),
           ...(currentUser.posts || []).map((post) => ({
             ...post,
+            likes: post.likes || [],
+            comments: post.comments || [],
             posterName: currentUser.name,
             posterImage: currentUser.profileImage,
             posterId: currentUser.id,
@@ -77,11 +95,13 @@ function MainPageContainer() {
           <AddPostSection
             currentUser={currentUser}
             setCurrentUser={setCurrentUser}
+            onNewPost={handleNewPost}
           />
           <FeedContainer
             posts={allPosts}
             currentUser={currentUser}
             setCurrentUser={setCurrentUser}
+            onPostUpdate={handlePostUpdate}
           />
         </div>
       </div>

@@ -1,14 +1,79 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
 import Buttons from "./Buttons.jsx";
 import ProfilePic from "../assets/profilePic.jpg";
 import chatLogo from "../assets/chatLogo.png";
 import SearchBar from "./searchBar.jsx";
-import { FaUsers } from "react-icons/fa";
+import { FaUsers, FaBell, FaUserPlus, FaCheck, FaTimes } from "react-icons/fa";
 import ProfileLink from "../profile/ProfileLink.jsx";
-import { logout } from "../services/api.js";
+import {
+  logout,
+  getPendingFriendRequests,
+  acceptFriendRequest,
+  rejectFriendRequest,
+} from "../services/api.js";
 
 function NavBar({ onOpenSuggestions, currentUser }) {
   const navigate = useNavigate();
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [showRequestsDropdown, setShowRequestsDropdown] = useState(false);
+  const [loadingRequest, setLoadingRequest] = useState({});
+  const dropdownRef = useRef(null);
+
+  // Fetch pending friend requests
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const requests = await getPendingFriendRequests();
+        setPendingRequests(requests || []);
+      } catch (error) {
+        console.error("Failed to fetch friend requests:", error);
+      }
+    };
+    if (currentUser) {
+      fetchRequests();
+      // Poll every 30 seconds for new requests
+      const interval = setInterval(fetchRequests, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowRequestsDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleAcceptRequest = async (requestId) => {
+    setLoadingRequest((prev) => ({ ...prev, [requestId]: "accept" }));
+    try {
+      await acceptFriendRequest(requestId);
+      setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+    } catch (error) {
+      console.error("Failed to accept request:", error);
+      alert("Failed to accept friend request");
+    } finally {
+      setLoadingRequest((prev) => ({ ...prev, [requestId]: null }));
+    }
+  };
+
+  const handleRejectRequest = async (requestId) => {
+    setLoadingRequest((prev) => ({ ...prev, [requestId]: "reject" }));
+    try {
+      await rejectFriendRequest(requestId);
+      setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+    } catch (error) {
+      console.error("Failed to reject request:", error);
+      alert("Failed to reject friend request");
+    } finally {
+      setLoadingRequest((prev) => ({ ...prev, [requestId]: null }));
+    }
+  };
 
   // ✅ Handle sign out
   const handleSignOut = async () => {
@@ -139,6 +204,113 @@ function NavBar({ onOpenSuggestions, currentUser }) {
                 {item.label}
               </Buttons>
             ))}
+
+            {/* Friend Requests Bell */}
+            <div className="position-relative" ref={dropdownRef}>
+              <Buttons
+                variant="light"
+                onClick={() => setShowRequestsDropdown(!showRequestsDropdown)}
+                className="d-flex align-items-center justify-content-center position-relative"
+                style={{
+                  color: "#ffffff",
+                  transition: "all 0.3s ease",
+                  padding: "8px 16px",
+                  margin: "0 8px",
+                }}
+              >
+                <FaBell size={20} />
+                {pendingRequests.length > 0 && (
+                  <span
+                    className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    style={{ fontSize: "0.6rem" }}
+                  >
+                    {pendingRequests.length}
+                  </span>
+                )}
+              </Buttons>
+
+              {/* Dropdown */}
+              {showRequestsDropdown && (
+                <div
+                  className="position-absolute bg-white rounded shadow-lg"
+                  style={{
+                    top: "100%",
+                    right: 0,
+                    minWidth: "300px",
+                    maxHeight: "400px",
+                    overflowY: "auto",
+                    zIndex: 1050,
+                    marginTop: "8px",
+                  }}
+                >
+                  <div className="p-3 border-bottom">
+                    <h6 className="mb-0 d-flex align-items-center gap-2">
+                      <FaUserPlus /> Friend Requests
+                    </h6>
+                  </div>
+
+                  {pendingRequests.length === 0 ? (
+                    <div className="p-3 text-center text-muted">
+                      No pending friend requests
+                    </div>
+                  ) : (
+                    <div>
+                      {pendingRequests.map((request) => (
+                        <div
+                          key={request.id}
+                          className="p-3 border-bottom d-flex align-items-center gap-3"
+                        >
+                          <img
+                            src={request.senderProfileImage || ProfilePic}
+                            alt={request.senderName}
+                            className="rounded-circle"
+                            style={{
+                              width: "45px",
+                              height: "45px",
+                              objectFit: "cover",
+                            }}
+                          />
+                          <div className="flex-grow-1">
+                            <div className="fw-semibold">
+                              {request.senderName}
+                            </div>
+                            <small className="text-muted">
+                              wants to be your friend
+                            </small>
+                          </div>
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-success btn-sm"
+                              onClick={() => handleAcceptRequest(request.id)}
+                              disabled={loadingRequest[request.id]}
+                              title="Accept"
+                            >
+                              {loadingRequest[request.id] === "accept" ? (
+                                "..."
+                              ) : (
+                                <FaCheck />
+                              )}
+                            </button>
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => handleRejectRequest(request.id)}
+                              disabled={loadingRequest[request.id]}
+                              title="Reject"
+                            >
+                              {loadingRequest[request.id] === "reject" ? (
+                                "..."
+                              ) : (
+                                <FaTimes />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
 
             {/* Chat button with badge */}
             <Buttons

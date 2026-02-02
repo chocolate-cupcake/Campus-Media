@@ -1,7 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import NavBar from "../mainPage/navBar.jsx";
-import { Container, Row, Col, Card, Button, Form, Image } from "react-bootstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Button,
+  Form,
+  Image,
+} from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
 import api from "../services/api";
 
@@ -22,6 +30,7 @@ function StudentProfile({ student }) {
   const [postFeeling, setPostFeeling] = useState("");
   const [postLocation, setPostLocation] = useState("");
   const [loading, setLoading] = useState(true);
+  const [expandedComments, setExpandedComments] = useState({});
   const fileInputRef = useRef();
 
   useEffect(() => {
@@ -37,7 +46,7 @@ function StudentProfile({ student }) {
 
       try {
         const profileData = await api.getUserProfile(user.id);
-        
+
         setBio(profileData.bio || "");
         setAbout(profileData.about || "");
 
@@ -45,13 +54,14 @@ function StudentProfile({ student }) {
           ...prev,
           profileImage: profileData.profileImage ?? prev.profileImage,
           name: profileData.name ?? prev.name,
-          university: profileData.university ?? prev.university ?? prev.department,
+          university:
+            profileData.university ?? prev.university ?? prev.department,
           department: profileData.department ?? prev.department,
         }));
 
         const postsData = await api.getProfilePosts(user.id);
 
-        const normalizedPosts = postsData.map(post => ({
+        const normalizedPosts = postsData.map((post) => ({
           id: post.postId || post.PostId || post.id,
           userId: post.userId || post.UserId,
           image: post.image || post.Image,
@@ -62,7 +72,7 @@ function StudentProfile({ student }) {
           location: post.location || post.Location,
           comments: post.comments || post.Comments || [],
           likesCount: post.likesCount || 0,
-          isLikedByCurrentUser: post.isLikedByCurrentUser || false
+          isLikedByCurrentUser: post.isLikedByCurrentUser || false,
         }));
 
         normalizedPosts.sort((a, b) => b.id - a.id);
@@ -82,7 +92,6 @@ function StudentProfile({ student }) {
         setLikes(initialLikes);
         setLikesCount(initialLikesCount);
         setComments(initialComments);
-
       } catch (error) {
         console.error("Error loading user data:", error);
       } finally {
@@ -117,7 +126,7 @@ function StudentProfile({ student }) {
 
   const toggleLike = (postId) => {
     const wasLiked = !!likes[postId];
-    
+
     const updatedLikes = { ...likes, [postId]: !wasLiked };
     setLikes(updatedLikes);
 
@@ -153,6 +162,30 @@ function StudentProfile({ student }) {
       console.error("Error submitting comment:", error);
       alert("Failed to submit comment. Please try again.");
     }
+  };
+
+  const deleteComment = async (postId, commentId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?"))
+      return;
+
+    try {
+      await api.deleteComment(commentId);
+
+      const updatedComments = (comments[postId] || []).filter(
+        (c) => c.id !== commentId,
+      );
+      setComments({ ...comments, [postId]: updatedComments });
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      alert("Failed to delete comment. Please try again.");
+    }
+  };
+
+  const toggleExpandComments = (postId) => {
+    setExpandedComments((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
   };
 
   const deletePost = async (postId) => {
@@ -213,7 +246,7 @@ function StudentProfile({ student }) {
         location: newPost.location || newPost.Location || "",
         comments: [],
         likesCount: 0,
-        isLikedByCurrentUser: false
+        isLikedByCurrentUser: false,
       };
 
       setPosts([normalizedPost, ...posts]);
@@ -251,7 +284,9 @@ function StudentProfile({ student }) {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+    >
       <NavBar currentUser={currentUser} />
       <Container className="mt-4 mb-5">
         <Card className="mb-4 p-3">
@@ -294,7 +329,11 @@ function StudentProfile({ student }) {
                     <Button size="sm" onClick={saveBio}>
                       Save
                     </Button>{" "}
-                    <Button size="sm" variant="light" onClick={() => setEditingBio(false)}>
+                    <Button
+                      size="sm"
+                      variant="light"
+                      onClick={() => setEditingBio(false)}
+                    >
                       Cancel
                     </Button>
                   </>
@@ -323,13 +362,21 @@ function StudentProfile({ student }) {
 
           {postImage && (
             <div className="text-center mb-2">
-              <Image src={postImage} fluid rounded style={{ maxHeight: "250px" }} />
+              <Image
+                src={postImage}
+                fluid
+                rounded
+                style={{ maxHeight: "250px" }}
+              />
             </div>
           )}
 
           <div className="d-flex justify-content-between align-items-center">
             <div>
-              <Button variant="link" onClick={() => fileInputRef.current.click()}>
+              <Button
+                variant="link"
+                onClick={() => fileInputRef.current.click()}
+              >
                 📷 Photo
               </Button>
               <input
@@ -374,83 +421,165 @@ function StudentProfile({ student }) {
             {posts.length === 0 && <p>No posts yet.</p>}
 
             {posts.map((p) => (
-              <Card className="mb-3" key={p.id}>
-                {p.image && <Card.Img variant="top" src={p.image} />}
-
-                <Card.Body>
-                  <div className="d-flex align-items-center mb-2">
-                    <Image
-                      src={currentUser.profileImage}
-                      roundedCircle
-                      style={{ width: 36, height: 36 }}
-                    />
-                    <div className="ms-2">
-                      <div style={{ fontWeight: 600 }}>{currentUser.name}</div>
-                      <small className="text-muted">{p.date}</small>
-                    </div>
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="ms-auto text-danger p-0"
-                      onClick={() => deletePost(p.id)}
-                      title="Delete post"
-                    >
-                      <FaTrash size={16} />
-                    </Button>
-                  </div>
-
-                  <Card.Text>{p.text}</Card.Text>
-                  {p.feeling && <div>Feeling {p.feeling}</div>}
-                  {p.location && <div className="text-muted">📍 {p.location}</div>}
-
-                  <div className="d-flex align-items-center justify-content-between mt-3">
-                    <Button variant="link" onClick={() => toggleLike(p.id)}>
-                      <span
+              <Card className="mb-2" key={p.id} style={{ padding: "5px" }}>
+                <div className="d-flex">
+                  {/* Image thumbnail on the left */}
+                  {p.image && (
+                    <div className="me-2 flex-shrink-0">
+                      <img
+                        src={p.image}
+                        alt="post"
                         style={{
-                          fontSize: 20,
-                          color: likes[p.id] ? "crimson" : "grey",
+                          width: "250px",
+                          height: "250px",
+                          objectFit: "cover",
+                          borderRadius: "8px",
                         }}
-                      >
-                        {likes[p.id] ? "❤️" : "🤍"}
-                      </span>
-                      <span className="ms-2">{likesCount[p.id] || 0}</span>
-                    </Button>
-
-                    <span>{comments[p.id]?.length || 0} comments</span>
-                  </div>
-
-                  {(comments[p.id] || []).map((c) => (
-                    <div key={c.id} className="mb-2">
-                      <strong>{c.userName} {c.userSurname}</strong>{" "}
-                      <small className="text-muted">
-                        {new Date(c.date).toLocaleString()}
-                      </small>
-                      <div>{c.commentText}</div>
+                      />
                     </div>
-                  ))}
+                  )}
 
-                  <Form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      submitComment(p.id);
-                    }}
-                    className="d-flex mt-2"
+                  {/* Post content on the right */}
+                  <div className="flex-grow-1">
+                    <div className="d-flex align-items-center mb-1">
+                      <Image
+                        src={currentUser.profileImage}
+                        roundedCircle
+                        style={{ width: 28, height: 28 }}
+                      />
+                      <div className="ms-2">
+                        <span style={{ fontWeight: 600, fontSize: "14px" }}>
+                          {currentUser.name}
+                        </span>
+                        <small className="text-muted ms-2">{p.date}</small>
+                      </div>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="ms-auto text-danger p-0"
+                        onClick={() => deletePost(p.id)}
+                        title="Delete post"
+                      >
+                        <FaTrash size={14} />
+                      </Button>
+                    </div>
+
+                    {p.text && <p className="mb-1 small">{p.text}</p>}
+                    {p.feeling && (
+                      <small className="text-muted">Feeling {p.feeling}</small>
+                    )}
+                    {p.location && (
+                      <small className="text-muted d-block">
+                        📍 {p.location}
+                      </small>
+                    )}
+
+                    <div className="d-flex align-items-center gap-3 mt-1">
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-0"
+                        onClick={() => toggleLike(p.id)}
+                      >
+                        <span
+                          style={{
+                            fontSize: 16,
+                            color: likes[p.id] ? "crimson" : "grey",
+                          }}
+                        >
+                          {likes[p.id] ? "❤️" : "🤍"}
+                        </span>
+                        <span className="ms-1 small">
+                          {likesCount[p.id] || 0}
+                        </span>
+                      </Button>
+                      <small className="text-muted">
+                        {comments[p.id]?.length || 0} comments
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Collapsible comments section */}
+                {(comments[p.id] || []).length > 0 && (
+                  <div
+                    className="mt-2 pt-2 border-top"
+                    style={{ fontSize: "13px" }}
                   >
-                    <Form.Control
-                      placeholder="Write a comment..."
-                      value={newCommentText[p.id] || ""}
-                      onChange={(e) =>
-                        setNewCommentText((s) => ({
-                          ...s,
-                          [p.id]: e.target.value,
-                        }))
-                      }
-                    />
-                    <Button type="submit" variant="primary" className="ms-2">
-                      Comment
-                    </Button>
-                  </Form>
-                </Card.Body>
+                    {(() => {
+                      const postComments = comments[p.id] || [];
+                      const isExpanded = expandedComments[p.id];
+                      const commentsToShow = isExpanded
+                        ? postComments
+                        : postComments.slice(0, 1);
+
+                      return (
+                        <>
+                          {commentsToShow.map((c) => (
+                            <div
+                              key={c.id}
+                              className="mb-1 d-flex justify-content-between align-items-start"
+                            >
+                              <div>
+                                <strong>
+                                  {c.userName} {c.userSurname}
+                                </strong>{" "}
+                                <small className="text-muted">
+                                  {new Date(c.date).toLocaleDateString()}
+                                </small>
+                                <div>{c.commentText}</div>
+                              </div>
+                              <Button
+                                variant="link"
+                                size="sm"
+                                className="p-0 text-danger"
+                                onClick={() => deleteComment(p.id, c.id)}
+                                title="Delete comment"
+                              >
+                                <FaTrash size={12} />
+                              </Button>
+                            </div>
+                          ))}
+                          {postComments.length > 1 && (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              className="p-0 text-muted"
+                              onClick={() => toggleExpandComments(p.id)}
+                            >
+                              {isExpanded
+                                ? "Hide comments"
+                                : `View all ${postComments.length} comments`}
+                            </Button>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                <Form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitComment(p.id);
+                  }}
+                  className="d-flex mt-2 gap-2"
+                >
+                  <Form.Control
+                    size="sm"
+                    placeholder="Write a comment..."
+                    value={newCommentText[p.id] || ""}
+                    onChange={(e) =>
+                      setNewCommentText((s) => ({
+                        ...s,
+                        [p.id]: e.target.value,
+                      }))
+                    }
+                  />
+                  <Button type="submit" variant="primary" size="sm">
+                    Post
+                  </Button>
+                </Form>
               </Card>
             ))}
           </Col>

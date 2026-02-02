@@ -10,7 +10,7 @@ import {
 } from "react-bootstrap";
 import {
   getSuggestions,
-  addFriend as apiAddFriend,
+  sendFriendRequest,
   dismissSuggestion,
   getCurrentUser,
 } from "../services/api.js";
@@ -56,27 +56,16 @@ function SideSuggestions({ showOffcanvas, closeOffcanvas }) {
     if (!currentUser) return;
 
     try {
-      await apiAddFriend(suggestionId);
+      await sendFriendRequest(suggestionId);
 
-      // Update local state
+      // Update local state - remove from suggestions
       setSuggestions((prev) => prev.filter((s) => s.id !== suggestionId));
 
-      const updatedUser = {
-        ...currentUser,
-        friends: [...currentUser.friends, suggestionId],
-        suggestions: currentUser.suggestions.filter(
-          (id) => id !== suggestionId,
-        ),
-      };
-
-      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
-      setCurrentUser(updatedUser);
-
-      setToastMessage(`✅ You added ${suggestionName} as a friend`);
+      setToastMessage(`✅ Friend request sent to ${suggestionName}`);
       setShowToast(true);
     } catch (error) {
-      console.error("Failed to add friend:", error);
-      setToastMessage(`❌ Failed to add ${suggestionName}`);
+      console.error("Failed to send friend request:", error);
+      setToastMessage(`❌ Failed to send request to ${suggestionName}`);
       setShowToast(true);
     }
   }

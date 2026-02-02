@@ -3,7 +3,7 @@
  * Handles all AJAX requests to the .NET backend API
  */
 
-// Update this URL to match your backend's address and port
+// URL to backend
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
@@ -310,6 +310,79 @@ export async function dismissSuggestion(userId) {
  */
 export async function getFriends() {
   return await fetchApi("/friends");
+}
+
+// ============================================
+// FRIEND REQUESTS API
+// ============================================
+
+/**
+ * Send a friend request
+ * @param {number} receiverId
+ * @returns {Promise<object>}
+ */
+export async function sendFriendRequest(receiverId) {
+  return await fetchApi(`/friendrequest/${receiverId}`, {
+    method: "POST",
+  });
+}
+
+/**
+ * Get pending friend requests (received)
+ * @returns {Promise<Array>}
+ */
+export async function getPendingFriendRequests() {
+  return await fetchApi("/friendrequest/pending");
+}
+
+/**
+ * Get sent friend requests
+ * @returns {Promise<Array>}
+ */
+export async function getSentFriendRequests() {
+  return await fetchApi("/friendrequest/sent");
+}
+
+/**
+ * Get friend request status with another user
+ * @param {number} otherUserId
+ * @returns {Promise<object>} - { status: "friends" | "sent" | "received" | null }
+ */
+export async function getFriendRequestStatus(otherUserId) {
+  return await fetchApi(`/friendrequest/status/${otherUserId}`);
+}
+
+/**
+ * Accept a friend request
+ * @param {number} requestId
+ * @returns {Promise<object>}
+ */
+export async function acceptFriendRequest(requestId) {
+  return await fetchApi(`/friendrequest/${requestId}/accept`, {
+    method: "POST",
+  });
+}
+
+/**
+ * Reject a friend request
+ * @param {number} requestId
+ * @returns {Promise<object>}
+ */
+export async function rejectFriendRequest(requestId) {
+  return await fetchApi(`/friendrequest/${requestId}/reject`, {
+    method: "POST",
+  });
+}
+
+/**
+ * Cancel a sent friend request
+ * @param {number} requestId
+ * @returns {Promise<object>}
+ */
+export async function cancelFriendRequest(requestId) {
+  return await fetchApi(`/friendrequest/${requestId}`, {
+    method: "DELETE",
+  });
 }
 
 // ============================================
@@ -630,7 +703,7 @@ export async function createProfilePost(userId, postData) {
   console.log("📤 Creating profile post for userId:", userId);
   console.log("📦 Post data being sent:", postData);
   console.log("🌐 Full URL:", `${API_BASE_URL}/ProfilePost/${userId}`);
-  
+
   return await fetchApi(`/ProfilePost/${userId}`, {
     method: "POST",
     body: JSON.stringify(postData),
@@ -645,24 +718,26 @@ export async function createProfilePost(userId, postData) {
 export async function addComment(commentData) {
   console.log("🔍 addComment called with:", commentData);
   console.log("🌐 Full URL will be:", `${API_BASE_URL}/ProfilePost/comment`);
-  console.log("📦 Body will be:", JSON.stringify({
-    postId: commentData.postId,
-    userName: commentData.userName,
-    userSurname: commentData.userSurname,
-    commentText: commentData.commentText
-  }));
-  
+  console.log(
+    "📦 Body will be:",
+    JSON.stringify({
+      postId: commentData.postId,
+      userName: commentData.userName,
+      userSurname: commentData.userSurname,
+      commentText: commentData.commentText,
+    }),
+  );
+
   return await fetchApi("/ProfilePost/comment", {
     method: "POST",
     body: JSON.stringify({
       postId: commentData.postId,
       userName: commentData.userName,
       userSurname: commentData.userSurname,
-      commentText: commentData.commentText
+      commentText: commentData.commentText,
     }),
   });
 }
-
 
 /**
  * Get all posts for a user
@@ -671,6 +746,17 @@ export async function addComment(commentData) {
  */
 export async function getProfilePosts(userId) {
   return await fetchApi(`/ProfilePost/posts/${userId}`);
+}
+
+/**
+ * Delete a comment
+ * @param {number} commentId
+ * @returns {Promise<void>}
+ */
+export async function deleteComment(commentId) {
+  return await fetchApi(`/ProfilePost/comment/${commentId}`, {
+    method: "DELETE",
+  });
 }
 
 // ============================================
@@ -707,6 +793,15 @@ const api = {
   dismissSuggestion,
   getFriends,
 
+  // Friend Requests
+  sendFriendRequest,
+  getPendingFriendRequests,
+  getSentFriendRequests,
+  getFriendRequestStatus,
+  acceptFriendRequest,
+  rejectFriendRequest,
+  cancelFriendRequest,
+
   // Stories
   getStories,
   markStoryViewed,
@@ -740,8 +835,8 @@ const api = {
 
   // Charts
   getUniversityChartData,
-  
-   // User Profile
+
+  // User Profile
   getUserProfile,
   updateUserBio,
   updateUserAbout,
@@ -749,6 +844,7 @@ const api = {
   // Profile Posts
   createProfilePost,
   addComment,
+  deleteComment,
   getProfilePosts,
 
   // Conversations & Messages

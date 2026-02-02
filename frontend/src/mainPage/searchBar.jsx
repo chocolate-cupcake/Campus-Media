@@ -4,7 +4,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { globalSearch } from "../services/api.js";
+import { globalSearch, getCurrentUser } from "../services/api.js";
 import SearchResultsModal from "./searchResultsModal.jsx";
 
 function SearchBar() {
@@ -12,7 +12,17 @@ function SearchBar() {
   const [results, setResults] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const cached = sessionStorage.getItem("currentUser");
+    if (cached) {
+      setCurrentUser(JSON.parse(cached));
+    } else {
+      getCurrentUser().then(setCurrentUser).catch(console.error);
+    }
+  }, []);
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -21,8 +31,10 @@ function SearchBar() {
     setLoading(true);
     try {
       const searchResults = await globalSearch(query.trim());
-      // Handle the search results - assuming API returns { users, universities, programs }
-      const filtered = searchResults.users || searchResults || [];
+      console.log("Search results:", searchResults);
+      // Handle the search results - API returns { Users, Universities, Programs } (capital letters from C#)
+      const filtered =
+        searchResults.users || searchResults.Users || searchResults || [];
       setResults(filtered);
       setShowModal(true);
     } catch (error) {
@@ -82,6 +94,7 @@ function SearchBar() {
           results={results}
           onClickProfile={handleClickProfile}
           onClose={() => setShowModal(false)}
+          currentUser={currentUser}
         />
       )}
     </div>
